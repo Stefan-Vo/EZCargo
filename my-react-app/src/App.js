@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css'; 
+import axios from "axios";
+
 
 function SignIn({ setIsAuthenticated }) {
   const [username, setUsername] = useState('');
@@ -8,7 +10,7 @@ function SignIn({ setIsAuthenticated }) {
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'password') {
+    if (username === 'test' && password === 'test') {
       setIsAuthenticated(true);
     } else {
       alert('Invalid credentials! Try "admin" / "password".');
@@ -41,71 +43,97 @@ function SignIn({ setIsAuthenticated }) {
   );
 }
 
-function CommentPage() {
-  const [comment, setComment] = useState('');
 
-  const handleCommentSubmit = () => {
-    if (comment.trim() === '') {
-      alert('Please type a comment before submitting!');
+
+function CommentPage() {
+  const [gridItems, setGridItems] = useState(
+    Array.from({ length: 96 }, (_, index) => ({
+      id: index + 1,
+      name: `Name ${index + 1}`,
+      weight: "",
+    }))
+  );
+
+  const [comment, setComment] = useState("");
+
+  const editName = (index) => {
+    const newName = prompt("Enter a new name:", gridItems[index].name);
+    if (newName && newName.trim() !== "") {
+      setGridItems((prevItems) =>
+        prevItems.map((item, i) =>
+          i === index ? { ...item, name: newName } : item
+        )
+      );
+    }
+  };
+
+  const handleWeightChange = (index, weight) => {
+    setGridItems((prevItems) =>
+      prevItems.map((item, i) =>
+        i === index ? { ...item, weight } : item
+      )
+    );
+  };
+
+  const submitComment = async () => {
+    if (!comment.trim()) {
+      alert("Please type a comment before submitting!");
       return;
     }
-    alert(`Your comment has been submitted: "${comment}"`);
-    setComment(''); 
+  
+    try {
+      // Send the comment to the backend
+      const response = await axios.post("http://localhost:5000/submit-comment", {comment,});
+  
+      if (response.status === 200) {
+        alert("Comment submitted successfully!");
+        setComment(""); // Clear the comment input
+      } else {
+        alert("Failed to submit the comment.");
+      }
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      alert("An error occurred while submitting the comment.");
+    }
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh', 
-      }}
-    >
-      <div style={{ flex: 1 }}>
-        <h1>EZCargo Algorithms</h1>
-        {/*  */}
+    <div className="app">
+      <div className="grid-container">
+        {gridItems.map((item, index) => (
+          <div className="grid-item" key={item.id}>
+            <div
+              className="name"
+              onClick={() => editName(index)}
+              role="button"
+              tabIndex={0}
+            >
+              {item.name}
+            </div>
+            <input
+              type="text"
+              className="weight-input"
+              placeholder="Weight (kg)"
+              value={item.weight}
+              onChange={(e) => handleWeightChange(index, e.target.value)}
+            />
+          </div>
+        ))}
       </div>
 
-      <div
-        style={{
-          padding: '10px',
-          borderTop: '1px solid #ddd',
-          backgroundColor: '#f9f9f9',
-        }}
-      >
+      <div className="comment-section">
         <textarea
-          placeholder="Add your comments here..."
+          id="commentBox"
+          placeholder="Type your comment here..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          style={{
-            width: '200%',
-            height: '100px',
-            marginBottom: '10px',
-            padding: '10px',
-            borderRadius: '5px',
-            border: '1px solid #ddd',
-            fontSize: '16px',
-          }}
-        />
-        <br />
-        <button
-          onClick={handleCommentSubmit}
-          style={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            borderRadius: '5px',
-            border: 'none',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          Submit Comment
-        </button>
+        ></textarea>
+        <button onClick={submitComment}>Submit Comment</button>
       </div>
     </div>
   );
-}
+};
+
 
 
 
