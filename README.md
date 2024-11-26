@@ -9,7 +9,7 @@
 -API endpoints are defined in Flask, e.g., /run-algorithm or /submit-comment.
 ### Axios
 - For API calls
-- Simplifies making API calls (GET, POST, PUT, DELETE) to your Flask backend.
+- Simplifies making API calls (GET, POST, PUT, DELETE) for Flask backend.
 ### React
 - Frontend for User Interface
 - React communicates with Flask by sending requests to Flask’s API endpoints.
