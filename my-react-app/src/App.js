@@ -18,6 +18,7 @@ function SignIn({ setIsAuthenticated }) {
   };
 
   return (
+  
     <div className="sign-in-container">
       <h1>Welcome to EZCargo</h1>
       <form onSubmit={handleSignIn} className="sign-in-form">
@@ -38,7 +39,10 @@ function SignIn({ setIsAuthenticated }) {
         <button type="submit" className="sign-in-button">
           Sign In
         </button>
-      </form>
+        <button type="submit" className="register-button">
+          Register
+        </button>      
+        </form>
     </div>
   );
 }
