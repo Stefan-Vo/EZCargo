@@ -152,6 +152,10 @@ h1 {
   justify-content: center;
   min-height: 100vh;
   background-color: #f7fafc;
+  background-image: url("cargoBackground.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .sign-in-container, .comment-section {
@@ -159,7 +163,8 @@ h1 {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  width: 350px;
+  height: 300px;
   text-align: center;
 }
 
@@ -175,6 +180,17 @@ h1 {
   width: 100%;
   padding: 10px;
   background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.register-button, .submit-comment-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #a2aba2;
   color: #fff;
   border: none;
   border-radius: 5px;
