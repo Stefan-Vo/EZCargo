@@ -20,7 +20,7 @@ function SignIn({ setIsAuthenticated }) {
   return (
   
     <div className="sign-in-container">
-      <h1>Welcome to EZCargo</h1>
+      <h1 className="text-2xl font-bold text-black-900">Welcome to EZCargo</h1>
       <form onSubmit={handleSignIn} className="sign-in-form">
         <input
           type="text"
@@ -36,12 +36,16 @@ function SignIn({ setIsAuthenticated }) {
           onChange={(e) => setPassword(e.target.value)}
           className="input-field"
         />
-        <button type="submit" className="sign-in-button">
+        <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+
           Sign In
         </button>
-        <button type="submit" className="register-button">
+        <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
           Register
         </button>      
+        <div class="text-sm">
+            <a href="google.com" class="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+        </div>
         </form>
     </div>
   );
@@ -102,7 +106,29 @@ function CommentPage() {
   };
 
   return (
+    <div>
+      <nav class="w-full bg-gray-800">
+       <div class="flex items-center">
+          <div class="shrink-0">
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="#" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Dashboard</a>
+              <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Calendar</a>
+              <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Reports</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
     <div className="app">
+      {/* Add a header or menu */}
+      <div className="header">
+        <h1 className="text-4xl font-bold text-gray-800 leading-tight text-center">EZCargo</h1>
+
+      </div>
+  
+      {/* Existing grid-container */}
       <div className="grid-container">
         {gridItems.map((item, index) => (
           <div className="grid-item" key={item.id}>
@@ -124,7 +150,8 @@ function CommentPage() {
           </div>
         ))}
       </div>
-
+  
+      {/* Existing comment section */}
       <div className="comment-section">
         <textarea
           id="commentBox"
@@ -135,7 +162,9 @@ function CommentPage() {
         <button onClick={submitComment}>Submit Comment</button>
       </div>
     </div>
+  </div>
   );
+  
 };
 
 
