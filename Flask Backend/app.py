@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS  
 
 app = Flask(__name__)
@@ -21,6 +21,16 @@ def submit_comment():
         return jsonify({"message": "Comment saved successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/get-comments')
+def get_comments():
+    # Assuming Flask Backend is the current working directory
+    return send_from_directory('.', 'comments.txt')
+
+@app.route('/get-file', methods=['GET'])
+def get_file():
+    return send_file('comments.txt', as_attachment=False)  # Set `as_attachment=True` to force a download
 
 if __name__ == '__main__':
     app.run(debug=True)
