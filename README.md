@@ -1,8 +1,28 @@
 # Project Description
 
+## Frameworks Used
+
+### Flask
+- API endpoints (e.g., routes for data submission and retrieval).
+- Serving static files (if needed, like a bundled React app).
+- Flask creates a REST API that React (frontend) can call using HTTP requests.
+-API endpoints are defined in Flask, e.g., /run-algorithm or /submit-comment.
+### Axios
+- For API calls
+- Simplifies making API calls (GET, POST, PUT, DELETE) for Flask backend.
+### React
+- Frontend for User Interface
+- React communicates with Flask by sending requests to Flask’s API endpoints.
+#### Tailwind 
+- for better styling 
 ## EZCargo 🚢
 
 EZCargo is a cutting-edge system designed to simplify and optimize cargo operations for shipping companies. Whether it’s loading, unloading, or ensuring proper balance, EZCargo ensures efficiency, safety, and compliance with industry standards.
+
+extra pip installs:
+pip install flask-cors (For Connecting Flask and React)
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init
 
 ## Primary Tasks:
 Loading and Unloading Containers: Allow operators to ask for an "optimal sequence of moves."
