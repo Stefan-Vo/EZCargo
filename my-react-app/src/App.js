@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import './App.css'; 
+import ReportPage from './logs';
+import CommentPage from './comments';
 import axios from "axios";
+import Layout from './dashboard';
+import { Outlet } from 'react-router-dom'; 
+
 
 
 function SignIn({ setIsAuthenticated }) {
@@ -20,8 +25,8 @@ function SignIn({ setIsAuthenticated }) {
   return (
   
     <div className="sign-in-container">
-      <h1>Welcome to EZCargo</h1>
-      <form onSubmit={handleSignIn} className="sign-in-form">
+      <h1 className="text-2xl font-bold text-black-900 mb-10" >Welcome to EZCargo</h1>
+      <form onSubmit={handleSignIn} className="">
         <input
           type="text"
           placeholder="Username"
@@ -36,107 +41,21 @@ function SignIn({ setIsAuthenticated }) {
           onChange={(e) => setPassword(e.target.value)}
           className="input-field"
         />
-        <button type="submit" className="sign-in-button">
+        <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
           Sign In
         </button>
-        <button type="submit" className="register-button">
+        <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
           Register
         </button>      
+        <div class="text-sm">
+            <a href="google.com" class="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+        </div>
         </form>
     </div>
   );
 }
 
 
-
-function CommentPage() {
-  const [gridItems, setGridItems] = useState(
-    Array.from({ length: 96 }, (_, index) => ({
-      id: index + 1,
-      name: `Name ${index + 1}`,
-      weight: "",
-    }))
-  );
-
-  const [comment, setComment] = useState("");
-
-  const editName = (index) => {
-    const newName = prompt("Enter a new name:", gridItems[index].name);
-    if (newName && newName.trim() !== "") {
-      setGridItems((prevItems) =>
-        prevItems.map((item, i) =>
-          i === index ? { ...item, name: newName } : item
-        )
-      );
-    }
-  };
-
-  const handleWeightChange = (index, weight) => {
-    setGridItems((prevItems) =>
-      prevItems.map((item, i) =>
-        i === index ? { ...item, weight } : item
-      )
-    );
-  };
-
-  const submitComment = async () => {
-    if (!comment.trim()) {
-      alert("Please type a comment before submitting!");
-      return;
-    }
-  
-    try {
-      // Send the comment to the backend
-      const response = await axios.post("http://localhost:5000/submit-comment", {comment,});
-  
-      if (response.status === 200) {
-        alert("Comment submitted successfully!");
-        setComment(""); // Clear the comment input
-      } else {
-        alert("Failed to submit the comment.");
-      }
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-      alert("An error occurred while submitting the comment.");
-    }
-  };
-
-  return (
-    <div className="app">
-      <div className="grid-container">
-        {gridItems.map((item, index) => (
-          <div className="grid-item" key={item.id}>
-            <div
-              className="name"
-              onClick={() => editName(index)}
-              role="button"
-              tabIndex={0}
-            >
-              {item.name}
-            </div>
-            <input
-              type="text"
-              className="weight-input"
-              placeholder="Weight (kg)"
-              value={item.weight}
-              onChange={(e) => handleWeightChange(index, e.target.value)}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="comment-section">
-        <textarea
-          id="commentBox"
-          placeholder="Type your comment here..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        ></textarea>
-        <button onClick={submitComment}>Submit Comment</button>
-      </div>
-    </div>
-  );
-};
 
 
 
@@ -146,29 +65,17 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/comment" replace />
-              ) : (
-                <SignIn setIsAuthenticated={setIsAuthenticated} />
-              )
-            }
-          />
-          <Route
-            path="/comment"
-            element={
-              isAuthenticated ? (
-                <CommentPage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-        </Routes>
+      <div className ="app-container"> 
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? <Navigate to="/comment" replace /> : <SignIn setIsAuthenticated={setIsAuthenticated} />
+          }
+        />
+        <Route path="/comment" element={isAuthenticated ? <CommentPage /> : <Navigate to="/" replace />} />
+        <Route path="/logs" element={isAuthenticated ? <ReportPage /> : <Navigate to="/" replace />} />
+      </Routes>
       </div>
     </Router>
   );

@@ -1,3 +1,5 @@
 Test
 Noticing damage on Cargo "Name 1"
 Hello everyone
+New Comment Section
+Testing Logs Page
