@@ -1,11 +1,5 @@
 import heapq
 
-def heuristic(a, b):
-    """
-    Heuristic function: Manhattan distance between two points.
-    """
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
 def find_shortest_path_a_star(shipDict, start, end):
     """
     A* algorithm to find the shortest path in the ship grid.
@@ -18,6 +12,10 @@ def find_shortest_path_a_star(shipDict, start, end):
     Returns:
         list: List of coordinates representing the shortest path, or an empty list if no path exists.
     """
+    def heuristic(a, b):
+        # Manhattan distance
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
     # Priority queue for A* (min-heap)
     pq = []
     heapq.heappush(pq, (0, start))  # (cost, current position)
@@ -44,7 +42,7 @@ def find_shortest_path_a_star(shipDict, start, end):
             neighbor = (current[0] + drow, current[1] + dcol)
 
             # Skip invalid or occupied cells
-            if neighbor not in shipDict or shipDict[neighbor] is not None:
+            if neighbor not in shipDict or (neighbor != end and shipDict[neighbor] is not None):
                 continue
 
             # Calculate new g_cost for the neighbor
