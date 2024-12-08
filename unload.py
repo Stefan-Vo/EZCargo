@@ -1,3 +1,6 @@
+import aStar;
+
+
 def unload(shipDict, start, end):
     """
     Unloads a container from the ship to the truck.
@@ -20,7 +23,7 @@ def unload(shipDict, start, end):
     shipDict[end] = None  # Temporary setup for the truck grid
 
     # Find the shortest path using A*
-    path = find_shortest_path_a_star(shipDict, start, end)
+    path = aStar.find_shortest_path_a_star(shipDict, start, end)
 
     if not path:
         print("No path found")

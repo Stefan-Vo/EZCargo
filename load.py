@@ -1,3 +1,5 @@
+import aStar;
+
 def load(shipDict, start, end, container):
     """
     Loads a container from the truck to the ship.
@@ -21,7 +23,7 @@ def load(shipDict, start, end, container):
     shipDict[start] = container  # Temporary placement on the truck grid
 
     # Find the shortest path using A*
-    path = find_shortest_path_a_star(shipDict, start, end)
+    path = aStar.find_shortest_path_a_star(shipDict, start, end)
 
     if not path:
         print("No path found")
