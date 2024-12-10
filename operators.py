@@ -8,9 +8,10 @@ from ship import ship
 
     
 class Cell:
-    def __init__(self, position, isFilled):
+    def __init__(self, position, isFilled, container = None):
         self.isFilled = isFilled
         self.position = position
+        self.container = container  # A Container object, or None if empty
         self.h = float("inf")
         self.g = 0
         self.totalCost = self.g + self.h
@@ -29,18 +30,18 @@ class Cell:
 
 def main():
     containers = [
-        Container("S", 1),  # Container A with weight 10
-        Container("A", 15),  # Container B with weight 15
-        Container("I", 5),   # Container C with weight 5
-        Container("B", 20),  # Container D with weight 20
-        Container("D", 12),  # Container E with weight 12
-        Container("K", 8),   # Container F with weight 8
-        Container("I", 0),   # Container G with weight 7
+        Container("S", 20),  # Container A with weight 10
+        Container("A", 5),  # Container B with weight 15
+        Container("UNUSED", 0),   # Container C with weight 5
+        Container("UNUSED", 0),  # Container D with weight 20
+        Container("D", 0),  # Container E with weight 12
+        Container("K", 0),   # Container F with weight 8
+        Container("X", 15),   # Container G with weight 7
         Container("C", 0),  # Container H with weight 18
         Container("ee", 0),  # Container I with weight 12
         Container("Z", 0),   # Container J with weight 8
         Container("w", 0),   # Container K with weight 7
-        Container("UNUSED", 0)   # Container L with weight 18
+        Container("WEEAE", 0)   # Container L with weight 18
     ]
 
     ship_matrix = np.zeros((3, 4), dtype=int) 
@@ -53,11 +54,18 @@ def main():
                  (1, 0), (1, 1), (1, 2), (1, 3),
                  (2, 0), (2, 1), (2, 2), (2, 3)]
 
-    cells = [Cell(pos, False) for pos in positions]
+
 
     for container, position in zip(containers, positions):
         my_ship.addContainers(position, container)
 
+    cells = []
+    for pos in positions:
+        # Check if a container exists at this position
+        container = my_ship.shipDict.get(tuple(pos), None)
+        isFilled = container is not None
+        # Create a Cell, passing the container if it exists
+        cells.append(Cell(position=pos, isFilled=isFilled, container=container))
 
     
     def printOriginalMatrix():
@@ -100,42 +108,46 @@ def main():
     
     #totalForEachGrid(my_ship, cells)
     
-    def balanceContainers(ship, cellList):
-        mid = ship.columns // 2
-        
+    def balanceContainers(ship, cellList): 
+        mid = ship.columns // 2  # Middle column for determining left/right weights
+
+        # Function to compute weights on the left and right sides
         def compute_weights(cellList):
             left_weight = sum(
-                ship.shipDict[tuple(cell.position)].weight
+                cell.container.weight
                 for cell in cellList if cell.isFilled and cell.position[1] < mid
             )
             right_weight = sum(
-                ship.shipDict[tuple(cell.position)].weight
+                cell.container.weight
                 for cell in cellList if cell.isFilled and cell.position[1] >= mid
             )
             return left_weight, right_weight
 
+                # Function to print the grid
         def print_grid(cellList):
-            # grid with all original positions
-            grid = [[' ' for _ in range(ship.columns)] for _ in range(ship.rows)]
-            
-            #  grid with weights for filled cells
+            # Initialize the grid with '0' for empty cells
+            grid = [['0' for _ in range(ship.columns)] for _ in range(ship.rows)]
+
+            # Populate grid with container weights for filled cells
             for cell in cellList:
-                # if cell.isFilled:
                 row, col = cell.position
-                grid[row][col] = str(ship.shipDict[tuple(cell.position)].weight)
-            
+                if cell.isFilled:
+                    grid[row][col] = str(cell.container.weight)
+
+            # Print the grid
             print("Grid:")
             for row in grid:
-                print(' '.join(str(cell).ljust(2) for cell in row))
+                print(' '.join(cell.ljust(2) for cell in row))  # Ensure consistent alignment
             print()
 
+        # Total weight computation
         def total_weight(cellList):
             return sum(
-                ship.shipDict[tuple(cell.position)].weight 
+                cell.container.weight 
                 for cell in cellList if cell.isFilled
             )
 
-        # Initial weight check
+        # Initial state and setup
         initial_total_weight = total_weight(cellList)
         left_weight, right_weight = compute_weights(cellList)
 
@@ -150,7 +162,7 @@ def main():
             currRightWeight = int(currRightWeight)
 
             # Check if balanced
-            if abs(currLeftWeight - currRightWeight) <= 0.1 * initial_total_weight:
+            if abs(currLeftWeight - currRightWeight) <= 0.1 * currRightWeight:
                 print(f"Balanced: Left = {currLeftWeight}, Right = {currRightWeight}")
                 optimal_path = path + [currentCellList]
                 
@@ -162,12 +174,12 @@ def main():
                 return True
 
             # Create a state key to avoid revisiting
-            initialStateKey = tuple(
-                (tuple(cell.position), cell.isFilled) for cell in currentCellList
+            state_key = tuple(
+                sorted((tuple(cell.position), cell.isFilled) for cell in currentCellList)
             )
-            if initialStateKey in closed_set:
+            if state_key in closed_set:
                 continue
-            closed_set.add(initialStateKey)
+            closed_set.add(state_key)
 
             # Try moving each filled container
             for cell in currentCellList:
@@ -175,15 +187,12 @@ def main():
                     continue
 
                 col = cell.position[1]
-                # CHECK IF ANY CONTAINSERS BELOW THIS CURR CONTAINER IN SAME COL IF THERE IS WE CANT MOVE YET SICNE HTE ONBE ABOVE HAS BE MOVE FIRST!
-                if any(
-                    currCell.isFilled and currCell.position[1] == col and currCell.position[0] < cell.position[0]
-                    for currCell in currentCellList
-                ):
-                    continue
-                # IF NOT FOUND LOOP SKIPS TO NEXT ITERATION SINCE CURR CELL CANT BE MOVE UNFORTUNATE
+                # Check if any container blocks this one from being moved
+                if any(currCell.isFilled and currCell.position[1] == col and currCell.position[0] < cell.position[0]
+                    for currCell in currentCellList):
+                    continue  # Skip if a container blocks the movement
 
-                cellContainerWeight = ship.shipDict[tuple(cell.position)].weight
+                cellContainerWeight = cell.container.weight
 
                 # Try moving to each other column
                 for targetCol in range(ship.columns):
@@ -195,55 +204,23 @@ def main():
                     if targetRow is None:
                         continue  # Skip if no space
 
-                    # Create a new list with the container moved
-                    newCellList = []
+                    # Create a new state by moving the container
+                    newCellList = deepcopy(currentCellList)
 
-
-                    target_cell = next((cell for cell in currentCellList if cell.position == (targetRow, col)), None) #FIND THE TARFVETGE CELL 
-
-                    cell_moved = False
-                    for c in currentCellList:
-                        if c.position == cell.position and not cell_moved:
-                            # Create a new cell with updated position
-                            new_cell = deepcopy(c)
-                            new_cell.position = (targetRow, targetCol)
-                            new_cell.isFilled = True  # Ensure it's marked as filled
-                            newCellList.append(new_cell)
-
-                            temp = ship.shipDict[(tuple((targetRow, targetCol)))].weight # NEED TO SWAP RIGHT SO WE NEED HOLD THIS
-                            # Move the container: update its position in the ship's container dictionary
-                            # Find the container associated with the original cell position
-                            temp2 = ship.shipDict[(tuple(c.position))].weight
-                            ship.shipDict[(tuple((targetRow, targetCol)))].weight = temp2
-                            ship.shipDict[(tuple(c.position))].weight = temp
-                            
-                            # Mark the original cell as empty
-                            empty_cell = deepcopy(target_cell)
-                            empty_cell.isFilled = False  # Mark the original position as empty
-                            empty_cell.position = c.position  # Keep original position
-                            newCellList.append(empty_cell)
-
-                            cell_moved = True
-                        else:
-                            # Add all other cells as they were
-                            newCellList.append(deepcopy(c))
-
+                    for c in newCellList:
+                        if c.position == cell.position:  # Move the container
+                            c.position = (targetRow, targetCol)
+                        elif c.position == (targetRow, targetCol):  # Vacate the target cell
+                            c.isFilled = False
+                            c.container.weight = 0   # Clear the container
 
                     # Compute new weights
-                    #if col < mid:
-                        #newLeftWeight = currLeftWeight - cellContainerWeight
-                        #newRightWeight = currRightWeight + cellContainerWeight
-                    #else:
-                        #newLeftWeight = currLeftWeight + cellContainerWeight
-                        #newRightWeight = currRightWeight - cellContainerWeight
-
-                    # Compute heuristic cost (difference between left and right weights)
                     newLeftWeight, newRightWeight = compute_weights(newCellList)
                     h_cost = abs(newLeftWeight - newRightWeight)
-                    
+
                     # Add to exploration set
-                    new_path = path + [currentCellList]
-                    heapq.heappush(open_set, (h_cost ,(newCellList, newLeftWeight, newRightWeight, new_path)))
+                    new_path = path + [newCellList]
+                    heapq.heappush(open_set, (h_cost, (newCellList, newLeftWeight, newRightWeight, new_path)))
 
         print("No solution found.")
         return False
