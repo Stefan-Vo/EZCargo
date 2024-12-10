@@ -11,8 +11,17 @@ class ship:
     def addContainers(self,position,Container):
         self.shipDict[tuple(position)] = Container
     def displayContainers(self):
-        for position, Container in self.shipDict.items():
-            print(position,Container)
+        print("\nCurrent Ship Grid:")
+        for i in range(self.matrix.shape[0]):
+            row = []
+            for j in range(self.matrix.shape[1]):
+                pos = (i, j)
+                if pos in self.shipDict:
+                    container = self.shipDict[pos]
+                    row.append(container.id if container else "Empty")
+                else:
+                    row.append("Empty")
+            print(" | ".join(row))
     def __len__(self):
         return len(self.shipDict)
 
