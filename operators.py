@@ -120,9 +120,9 @@ def main():
             
             #  grid with weights for filled cells
             for cell in cellList:
-                if cell.isFilled:
-                    row, col = cell.position
-                    grid[row][col] = str(ship.shipDict[tuple(cell.position)].weight)
+                # if cell.isFilled:
+                row, col = cell.position
+                grid[row][col] = str(ship.shipDict[tuple(cell.position)].weight)
             
             print("Grid:")
             for row in grid:
@@ -175,12 +175,13 @@ def main():
                     continue
 
                 col = cell.position[1]
-                # Skip if there are containers below this one in the same column
+                # CHECK IF ANY CONTAINSERS BELOW THIS CURR CONTAINER IN SAME COL IF THERE IS WE CANT MOVE YET SICNE HTE ONBE ABOVE HAS BE MOVE FIRST!
                 if any(
                     currCell.isFilled and currCell.position[1] == col and currCell.position[0] < cell.position[0]
                     for currCell in currentCellList
                 ):
                     continue
+                # IF NOT FOUND LOOP SKIPS TO NEXT ITERATION SINCE CURR CELL CANT BE MOVE UNFORTUNATE
 
                 cellContainerWeight = ship.shipDict[tuple(cell.position)].weight
 
@@ -196,6 +197,10 @@ def main():
 
                     # Create a new list with the container moved
                     newCellList = []
+
+
+                    target_cell = next((cell for cell in currentCellList if cell.position == (targetRow, col)), None) #FIND THE TARFVETGE CELL 
+
                     cell_moved = False
                     for c in currentCellList:
                         if c.position == cell.position and not cell_moved:
@@ -204,27 +209,36 @@ def main():
                             new_cell.position = (targetRow, targetCol)
                             new_cell.isFilled = True  # Ensure it's marked as filled
                             newCellList.append(new_cell)
+
+                            temp = ship.shipDict[(tuple((targetRow, targetCol)))].weight # NEED TO SWAP RIGHT SO WE NEED HOLD THIS
+                            # Move the container: update its position in the ship's container dictionary
+                            # Find the container associated with the original cell position
+                            temp2 = ship.shipDict[(tuple(c.position))].weight
+                            ship.shipDict[(tuple((targetRow, targetCol)))].weight = temp2
+                            ship.shipDict[(tuple(c.position))].weight = temp
                             
                             # Mark the original cell as empty
-                            empty_cell = deepcopy(c)
+                            empty_cell = deepcopy(target_cell)
                             empty_cell.isFilled = False  # Mark the original position as empty
-                            empty_cell.position = cell.position  # Keep original position
+                            empty_cell.position = c.position  # Keep original position
                             newCellList.append(empty_cell)
-                            
+
                             cell_moved = True
                         else:
                             # Add all other cells as they were
                             newCellList.append(deepcopy(c))
 
+
                     # Compute new weights
-                    if col < mid:
-                        newLeftWeight = currLeftWeight - cellContainerWeight
-                        newRightWeight = currRightWeight + cellContainerWeight
-                    else:
-                        newLeftWeight = currLeftWeight + cellContainerWeight
-                        newRightWeight = currRightWeight - cellContainerWeight
+                    #if col < mid:
+                        #newLeftWeight = currLeftWeight - cellContainerWeight
+                        #newRightWeight = currRightWeight + cellContainerWeight
+                    #else:
+                        #newLeftWeight = currLeftWeight + cellContainerWeight
+                        #newRightWeight = currRightWeight - cellContainerWeight
 
                     # Compute heuristic cost (difference between left and right weights)
+                    newLeftWeight, newRightWeight = compute_weights(newCellList)
                     h_cost = abs(newLeftWeight - newRightWeight)
                     
                     # Add to exploration set
