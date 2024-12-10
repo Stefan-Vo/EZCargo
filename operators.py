@@ -304,13 +304,157 @@ def main():
         # No empty row found
         return None
         
+    isBalanced = False #get value from isbalance
+    siftCellGrid, siftBufferGrid = cells, buffer
+    def sift(isBalanced, siftCellGrid, siftBufferGrid):
+        if isBalanced:
+            return 
+        
+        def print_grid(cellList):
+            grid = [['0' for _ in range(4)] for _ in range(3)]
+            for i, cell in enumerate(cellList):
+                row, col = cell.position
+                print("BUFFFER") 
+                print_buffer(buffer)
+                if cell.isFilled:
+                    grid[row][col] = str(cell.container.weight)
+            print("Grid:")
+            for row in grid:
+                print(' '.join(str(cell).ljust(2) for cell in row))  # Ensure proper alignment
+            print()
 
+        # Print buffer grid representation
+        def print_buffer(siftBufferGrid):
+            grid = [['0' for _ in range(4)] for _ in range(3)]  # 3x4 buffer grid
+            for buff in siftBufferGrid:
+                row, col = buff.position
+                if buff.isFilled:
+                    grid[row][col] = str(buff.container.weight)
+
+            print("Buffer:")
+            for row in grid:
+                print(' '.join(str(cell).ljust(2) for cell in row))  # Ensure proper alignment
+            print()
+        def is_main_grid_full(cellList):
+            return all(cell.isFilled for cell in cellList)
+        
+        def move_to_buffer(siftCellGrid, siftBufferGrid):
+            # Get all filled cells, sorted by container weight (heaviest first)
+            filled_cells = sorted(
+                [cell for cell in siftCellGrid if cell.isFilled],
+                key=lambda c: c.container.weight,
+                reverse=True  # Sort in descending order
+            )
+
+            if not filled_cells:
+                return False, siftCellGrid, siftBufferGrid  # No containers to move
+
+            for cell in filled_cells:
+                # Find an empty buffer slot for the container
+                empty_buffer_slot = next((buff for buff in siftBufferGrid if not buff.isFilled), None)
+                
+                if empty_buffer_slot:
+                    # Move the container to the buffer
+                    empty_buffer_slot.container = cell.container
+                    empty_buffer_slot.isFilled = True
+                    cell.isFilled = False
+                    cell.container = None  # Clear the cell
+                    print(f"Moved container from {cell.position} to buffer at {empty_buffer_slot.position}")
+                else:
+                    # No more empty buffer slots available
+                    break
+
+            return True, siftCellGrid, siftBufferGrid  # Return updated grids
+
+        
+        
+        
+        def move_from_buffer(siftCellGrid, siftBufferGrid):
+            filled_buffers = [buff for buff in siftBufferGrid if buff.isFilled]
+            
+            if not filled_buffers:
+                return False  # No containers to move
+
+            for buff in filled_buffers:
+                empty_cell = next((cell for cell in siftCellGrid if not cell.isFilled), None)
+                
+                if empty_cell:
+                    empty_cell.container = buff.container
+                    empty_cell.isFilled = True
+                    buff.isFilled = False
+                    buff.container = None  # Clear the buffer slot
+                    print(f"Moved container {buff.container} from buffer at {buff.position} to grid at {empty_cell.position}")
+
+            return True      
+        
+        def move_from_buffer(siftCellGrid, siftBufferGrid):
+    
+            filled_buffers = [buff for buff in siftBufferGrid if buff.isFilled]
+
+            if not filled_buffers:
+                return False  # No containers to move
+
+            # Step 2: Sort containers by weight (heaviest to lightest)
+            sorted_buffers = sorted(
+                filled_buffers, 
+                key=lambda b: b.container.weight, 
+                reverse=True
+            )
+
+            # Step 3: Define the filling order for the grid (center-first strategy)
+            fill_order = [
+                (0, 1), (0, 2),  # Middle of the first row
+                (0, 0), (0, 2),  # Middle of the second row
+                (2, 1), (2, 2),  # Middle of the third row
+                (1, 0), (1, 3),  # Fill outer slots of the middle row
+                (0, 0), (0, 3),  # Fill outer slots of the top row
+                (2, 0), (2, 3)   # Fill outer slots of the bottom row
+            ]
+
+            for i, pos in enumerate(fill_order):
+                if i < len(sorted_buffers):  
+                    buffer_slot = sorted_buffers[i]
+                    target_cell = next(
+                        (cell for cell in siftCellGrid if cell.position == pos and not cell.isFilled), 
+                        None
+                    )
+                    if target_cell:
+                        target_cell.container = buffer_slot.container
+                        target_cell.isFilled = True
+                        buffer_slot.isFilled = False
+                        buffer_slot.container = None  
+                        print(f"Moved container {target_cell.container} to grid at {target_cell.position}")
+
+            return True
+        
+     
+
+        if move_to_buffer(siftCellGrid, siftBufferGrid):
+            print_grid(siftCellGrid)  # Print grid after moving to buffer
+            print_buffer(buffer)  # Print buffer state after moving containers
+        else:
+            return  # No more room in the buffer
+
+        print("AFTER")
+
+           
+        if move_from_buffer(siftCellGrid, siftBufferGrid):
+            print_grid(siftCellGrid)  # Print grid after moving from buffer
+            print_buffer(buffer)  # Print buffer state after moving containers
+
+
+
+        print_buffer(buffer)
+        return True
+        
+
+    print(sift(isBalanced, siftCellGrid, siftBufferGrid))
     print( totalForEachGrid(my_ship, cells))
 
-    if balanceContainers(my_ship, cells, buffer):
-        print("Balanced")
-    else:
-        print("Not Blaanced")
+    #if balanceContainers(my_ship, cells, buffer):
+        #print("Balanced")
+    #else:
+        #print("Not Blaanced")
     
     
 
