@@ -47,15 +47,15 @@ class Buffer:
 
 def main():
     containers = [
-        Container("S", 0),  # Container A with weight 10
+        Container("S", 20),  # Container A with weight 10
         Container("A", 5),  # Container B with weight 15
-        Container("KYLE", 0),   # Container C with weight 5
-        Container("CASEY", 10),  # Container D with weight 20
+        Container("UNUSED", 0),   # Container C with weight 5
+        Container("CASEY", 0),  # Container D with weight 20
         Container("D", 0),  # Container E with weight 12
         Container("K", 0),   # Container F with weight 8
         Container("X", 15),   # Container G with weight 7
         Container("C", 0),  # Container H with weight 18
-        Container("ee", 20),  # Container I with weight 12
+        Container("ee", 0),  # Container I with weight 12
         Container("Z", 0),   # Container J with weight 8
         Container("w", 0),   # Container K with weight 7
         Container("WEEAE", 0)   # Container L with weight 18
@@ -74,18 +74,22 @@ def main():
     buffer = []
     for pos in positions:
         container = my_ship.shipDict.get(tuple(pos), None)
-        bufferGrid = Buffer(pos, isFilled=False, container = container)
+        print(f"Position {pos}: Container = {container}")
+        isFilled = container is not None
+        bufferGrid = Buffer(pos, isFilled=isFilled, container=Container("UNUSED", 0)) #change later
         buffer.append(bufferGrid)
+
 
     for container, position in zip(containers, positions):
         my_ship.addContainers(position, container)
 
     cells = []
     for pos in positions:
-        # Check if a container exists at this position
-        container = my_ship.shipDict.get(tuple(pos), None)
-        isFilled = container is not None
-        # Create a Cell, passing the container if it exists
+        # Check if a container exists at this position and has a meaningful weight
+        container = my_ship.shipDict.get(tuple(pos))
+        if container.id != "UNUSED":
+            container.isFilled = True
+        # Create a Cell, passing the container if it exists and has weight
         cells.append(Cell(position=pos, isFilled=isFilled, container=container))
 
     
@@ -146,16 +150,22 @@ def main():
 
         # Print grid representation
         def print_grid(cellList):
-            grid = [['0' for _ in range(ship.columns)] for _ in range(ship.rows)]
+            # Initialize a grid with placeholder values
+            grid = [['a' for _ in range(ship.columns)] for _ in range(ship.rows)]
+            
             for i, cell in enumerate(cellList):
                 row, col = cell.position
-                print("BUFFFER") 
-                print_buffer(buffer)
                 if cell.isFilled:
-                    grid[row][col] = str(cell.container.weight)
+                    # Format: "weight(isFilled)"
+                    grid[row][col] = f"{cell.container.weight}({cell.isFilled})"
+                else:
+                    # If not filled, just put "empty(isFilled)"
+                    grid[row][col] = f"empty({cell.isFilled})"
+
+            # Print the grid
             print("Grid:")
             for row in grid:
-                print(' '.join(str(cell).ljust(2) for cell in row))  # Ensure proper alignment
+                print(' '.join(str(cell).ljust(15) for cell in row))  # Adjust the width for proper alignment
             print()
 
         # Print buffer grid representation
@@ -185,18 +195,35 @@ def main():
         # Move container from buffer to main grid
         def move_from_buffer(currentCellList, buffer):
             for buff in buffer:
-                if buff.isFilled:
+                if buff.isFilled and buff.container is not None:
                     empty_cell = next(
                         (cell for cell in currentCellList if not cell.isFilled),
                         None
                     )
                     if empty_cell:
-                        empty_cell.container = buff.container
+                        # print(f"Moving container from buffer {buff.position}")
+                        # print(f"Buffer container BEFORE move: {buff.container}")
+                        # print(f"Empty cell BEFORE move: {empty_cell.container}")
+                        
+                        # Explicitly copy container attributes instead of using deepcopy
+                        temp = deepcopy(empty_cell.container.weight)
+                        empty_cell.container = deepcopy(buff.container)
                         empty_cell.isFilled = True
+                        
+                        # print(f"Buffer container DURING move: {buff.container}")
+                        # print(f"Empty cell AFTER move: {empty_cell.container}")
+                        # print(f"Empty cell position AFTER move: {empty_cell.position}")
+                        print("MOVE FROM BUFFER",  empty_cell.container.weight)
+                        print_buffer(buffer)
+                        
+                        # Clear the buffer slot
                         buff.isFilled = False
-                        buff.container = None  # Clear the buffer slot
+                        buff.container.weight = temp
+                        print(f"Buffer slot AFTER move: {buff}")
+                        
                         return True
             return False
+
 
         # Move container from main grid to buffer
         def move_to_buffer(currentCellList, buffer):
@@ -207,10 +234,15 @@ def main():
                         None
                     )
                     if empty_buffer_slot:
-                        empty_buffer_slot.container = cell.container
+                        print("MOVE", cell.container.weight, cell.position)
+                        print("Cell in buffer", cell.container.weight)
+                        temp = deepcopy(empty_buffer_slot.container.weight)
+                        empty_buffer_slot.container = deepcopy(cell.container) #20
                         empty_buffer_slot.isFilled = True
                         cell.isFilled = False
-                        cell.container = None
+                        cell.container.weight = temp #Empty
+                        print("AFTER BUFFER",  cell.container.weight)
+                        print_buffer(buffer)
                         return True
             return False
 
@@ -227,7 +259,7 @@ def main():
             h_, (currentCellList, currLeftWeight, currRightWeight, path, bufferList) = heapq.heappop(open_set)
             currLeftWeight = int(currLeftWeight)
             currRightWeight = int(currRightWeight)
-
+            print("WWWWWWWWWWWWW", currLeftWeight, currRightWeight)
             # Check if balanced
             if abs(currLeftWeight - currRightWeight) <= 0.1 * currRightWeight:
                 print(f"Balanced: Left = {currLeftWeight}, Right = {currRightWeight}")
@@ -242,17 +274,19 @@ def main():
             if not is_main_grid_full(currentCellList):
                 if move_from_buffer(currentCellList, bufferList):
                     currLeftWeight, currRightWeight = compute_weights(currentCellList)
+                    print("ZZZZZZZZZZZZZZZZZZZZZZZZZ")
                     print_grid(currentCellList)  # Print grid after moving from buffer
 
             # If main grid is full, attempt to move containers to buffer
             elif is_main_grid_full(currentCellList):
                 if move_to_buffer(currentCellList, bufferList):
                     currLeftWeight, currRightWeight = compute_weights(currentCellList)
+                    print("WWWWWWWWWWWWWWWWWW")
                     print_grid(currentCellList)  # Print grid after moving to buffer
                     #print_buffer(bufferList)  # Print buffer state after moving container
                 else:
                     continue  # No more room in the buffer
-
+            print_buffer(bufferList)
             # Create a unique state key to avoid revisiting
             state_key = tuple(sorted((tuple(cell.position), cell.isFilled) for cell in currentCellList))
             if state_key in closed_set:
@@ -263,27 +297,58 @@ def main():
             for cell in currentCellList:
                 if not cell.isFilled:
                     continue
-                col = cell.position[1]
+                col = cell.position[1] #0,0
                 if any(currCell.isFilled and currCell.position[1] == col and currCell.position[0] < cell.position[0]
-                    for currCell in currentCellList):
+                        for currCell in currentCellList):
                     continue
-
                 # Try moving the container to another column
                 for targetCol in range(ship.columns):
                     if targetCol == col:
                         continue
+
                     targetRow = findNextEmptyRow(currentCellList, targetCol)
                     if targetRow is None:
-                        continue
+                        continue  # No empty row available in this column
 
+                    
                     newCellList = deepcopy(currentCellList)
+
+                    # Find the target cell
+                    for c in newCellList:
+                        if c.position == (targetRow, targetCol):
+                            target_cell = c
+                            break
+                    print("TARGET CELL: ", target_cell)
+                    # Move the container to the target cell
+                    if cell.position == target_cell.position:
+                        print("WEWAD", cell, target_cell)
+                        continue
+                 
+
+                    #target_cell is empty cell??
                     for c in newCellList:
                         if c.position == cell.position:
-                            c.position = (targetRow, targetCol)
+                            print("FIRST", c.position, c.container.weight)
+                            temp = deepcopy(c) #0,1
+                            c.position = deepcopy(target_cell.position) # c becomes 0,0 with weight of target_cell 0
+                            #c.container.weight = temp.container.weight
+                            #target_cell.container.weight = deepcopy(temp.container.weight) #
+                            target_cell.position = deepcopy(temp.position)
+                            print("TARGET_CELL", target_cell.position, target_cell.container.weight)
+                            target_cell.isFilled = False
+                            c.isFilled = True
+                            print("AFTRER C", c.position, c.container.weight)
+                            print("AFTER TARGET_CELL", target_cell.position, target_cell.container.weight)
+                            break
 
+
+                    print_grid(newCellList)
+
+                    #newCellList = deepcopy(currentCellList)
                     newLeftWeight, newRightWeight = compute_weights(newCellList)
+                    #print("WWWWWWWWWWWWWW", newLeftWeight, newRightWeight)
                     h_cost = abs(newLeftWeight - newRightWeight)
-                    new_path = path + [newCellList]
+                    new_path = path + [deepcopy(newCellList)]
                     heapq.heappush(open_set, (h_cost, (newCellList, newLeftWeight, newRightWeight, new_path, bufferList)))
 
         print("No solution found.")
@@ -369,21 +434,21 @@ def main():
         
         
         
-        def move_from_buffer(siftCellGrid, siftBufferGrid):
-            filled_buffers = [buff for buff in siftBufferGrid if buff.isFilled]
+        # def move_from_buffer(siftCellGrid, siftBufferGrid):
+        #     filled_buffers = [buff for buff in siftBufferGrid if buff.isFilled]
             
-            if not filled_buffers:
-                return False  # No containers to move
+        #     if not filled_buffers:
+        #         return False  # No containers to move
 
-            for buff in filled_buffers:
-                empty_cell = next((cell for cell in siftCellGrid if not cell.isFilled), None)
+        #     for buff in filled_buffers:
+        #         empty_cell = next((cell for cell in siftCellGrid if not cell.isFilled), None)
                 
-                if empty_cell:
-                    empty_cell.container = buff.container
-                    empty_cell.isFilled = True
-                    buff.isFilled = False
-                    buff.container = None  # Clear the buffer slot
-                    print(f"Moved container {buff.container} from buffer at {buff.position} to grid at {empty_cell.position}")
+        #         if empty_cell:
+        #             empty_cell.container = buff.container
+        #             empty_cell.isFilled = True
+        #             buff.isFilled = False
+        #             buff.container = None  # Clear the buffer slot
+        #             print(f"Moved container {buff.container} from buffer at {buff.position} to grid at {empty_cell.position}")
 
             return True      
         
@@ -450,13 +515,13 @@ def main():
         return True
         
 
-    print(sift(isBalanced, siftCellGrid, siftBufferGrid))
+    # print(sift(isBalanced, siftCellGrid, siftBufferGrid))
     print( totalForEachGrid(my_ship, cells))
 
-    #if balanceContainers(my_ship, cells, buffer):
-        #print("Balanced")
-    #else:
-        #print("Not Blaanced")
+    if balanceContainers(my_ship, cells, buffer):
+        print("Balanced")
+    else:
+        print("Not Blaanced")
     
     
 
@@ -485,11 +550,14 @@ def main():
         print(f"Right Total: {right_total}")
         print(f"Percentage Difference: {percentage_difference:.2f}%")
 
+
+
     #printOriginalMatrix()
     
     #balanceContainers(my_ship, cells)
     
     #printBalanceMatrix()
+
 
     my_ship.displayContainers()
 

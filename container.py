@@ -2,10 +2,12 @@ class Container:
     def __init__(self, id, weight):
         self.id = id
         self.weight = weight
+    
     def __str__(self):
-        return f"Container {self.id, self.weight}"
-    def getattr(self):
-        return (self.id,self.weight)
+        return f"Container({self.id}, {self.weight})"
+    
+    def __repr__(self):
+        return self.__str__()
 
 
 
