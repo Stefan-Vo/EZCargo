@@ -15,7 +15,8 @@ def load(shipDict, start, container):
             - destination (tuple): The chosen destination cell.
     """
     # Find all empty cells
-    empty_cells = [pos for pos, value in shipDict.items() if value is None]
+
+    empty_cells = [pos for pos, value in shipDict.shipDict.items() if value is None]
 
     if not empty_cells:
         raise ValueError("No empty cells available on the ship")
