@@ -5,7 +5,7 @@ import heapq
 from container import Container
 from copy import deepcopy
 from ship import ship
-
+import math
     
 class Cell:
     def __init__(self, position, isFilled, container = None):
@@ -50,7 +50,7 @@ def main():
         Container("S", 0),  # Container A with weight 10
         Container("A", 5),  # Container B with weight 15
         Container("KYLE", 0),   # Container C with weight 5
-        Container("CASEY", 0),  # Container D with weight 20
+        Container("CASEY", 10),  # Container D with weight 20
         Container("D", 0),  # Container E with weight 12
         Container("K", 0),   # Container F with weight 8
         Container("X", 15),   # Container G with weight 7
@@ -402,14 +402,16 @@ def main():
             )
 
             # Step 3: Define the filling order for the grid (center-first strategy)
-            fill_order = [
-                (0, 1), (0, 2),  # Middle of the first row
-                (0, 0), (0, 2),  # Middle of the second row
-                (2, 1), (2, 2),  # Middle of the third row
-                (1, 0), (1, 3),  # Fill outer slots of the middle row
-                (0, 0), (0, 3),  # Fill outer slots of the top row
-                (2, 0), (2, 3)   # Fill outer slots of the bottom row
-            ]
+            fill_order = []
+            row,col= 3,4
+            mid=math.floor((col-1)/2)
+            for i in range(row):
+                fill_order.append((i,mid))
+                for j in range(1, mid+1):
+                    fill_order.append((i,mid+j))
+                    fill_order.append((i,mid-j))
+                fill_order.append((i,mid+j+1))
+
 
             for i, pos in enumerate(fill_order):
                 if i < len(sorted_buffers):  
