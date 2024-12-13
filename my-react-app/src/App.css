@@ -190,3 +190,96 @@
     transform: rotate(360deg);
   }
 }
+
+.balance-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f7f7f7;
+  font-family: Arial, sans-serif;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.boxes-container {
+  display: flex;
+  gap: 20px;
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.load-unload-box {
+  background-color: #4CAF50; 
+}
+
+.balance-box {
+  background-color: #2196F3;
+}
+/* Styles for the upload page */
+.upload-manifest-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f7f7f7;
+  font-family: Arial, sans-serif;
+}
+
+.upload-manifest-container h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.upload-manifest-container form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.upload-manifest-container input[type="file"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.upload-manifest-container button {
+  width: 200px;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.upload-manifest-container button:hover {
+  background-color: #45a049;
+}
+
+.upload-manifest-container p {
+  margin-top: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: green;
+}
