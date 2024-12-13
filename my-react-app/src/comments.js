@@ -3,8 +3,7 @@ import axios from "axios";
 import Layout from './dashboard'; 
 import './App.css'; 
 
-
-function CommentPage() {
+function CommentPage({ username }) {  // Receive username as prop
   const [gridItems, setGridItems] = useState(
     Array.from({ length: 96 }, (_, index) => ({
       id: index + 1,
@@ -94,14 +93,44 @@ function CommentPage() {
           ))}
         </div>
 
-        <div className="comment-section">
-          <textarea
-            className="bg-cyan-950 text-white border-2 border-gray-300 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your comment here..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          ></textarea>
-          <button onClick={submitComment}>Submit Comment</button>
+        {/* Display the username entered during SignIn */}
+        <div className="comment-author">
+          <p className="text-xl font-semibold text-center text-white">{username}</p>
+        </div>
+
+        {/* Comment Section and Next Move button */}
+        <div className="comment-section mt-6 flex justify-between items-start">
+          <div className="flex-1 mr-4">
+            <textarea
+              className="bg-cyan-950 text-white border-2 border-gray-300 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your comment here..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              style={{ marginTop: '10px' }} 
+            ></textarea>
+            <button
+              onClick={submitComment}
+              className="mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+            >
+              Submit Comment
+            </button>
+          </div>
+
+          {/* "Next Move" Button */}
+          <div className="flex-shrink-0 mt-4">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              style={{
+                position: 'absolute',
+                bottom: '60px',
+                right: '300px',
+                width: '250px',
+                height: '100px'
+              }}
+            >
+              Next Move
+            </button>
+          </div>
         </div>
 
         {isModalOpen && (

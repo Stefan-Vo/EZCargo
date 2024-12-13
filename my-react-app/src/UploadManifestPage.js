@@ -51,7 +51,7 @@ function TakeFile() {
   }
 
   return (
-    <div className="App">
+    <div className="app">
       <form onSubmit={handleSubmit}>
         <h1>React File Upload</h1>
         <input

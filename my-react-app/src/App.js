@@ -3,31 +3,33 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css'; 
 import ReportPage from './logs';
 import CommentPage from './comments';
-import axios from "axios";
 import Layout from './dashboard';
-import { Outlet } from 'react-router-dom';
 import UploadManifestPage from './UploadManifestPage';
 
 import { useNavigate } from 'react-router-dom';
 
-// Define the BalancePage component
 function BalancePage() {
-  const navigate = useNavigate(); // Hook to navigate programmatically
+  const navigate = useNavigate(); 
 
   const handleBalanceClick = () => {
-    navigate('/upload-manifest'); // Navigate to the upload page
+    navigate('/upload-manifest');
   };
 
   return (
-    <div className="balance-container">
-      <h1 className="page-title">Load/Unload or Balance</h1>
-      <div className="boxes-container">
-        <div className="box load-unload-box">
-          <h2>Load/Unload</h2>
+    <div className="app">
+      <div className="flex items-center justify-center min-h-screen">
+        <div>
+          <button
+            className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-center"
+            onClick={handleBalanceClick}  
+          >
+            Load/Unload
+          </button>
         </div>
+
         <div
-          className="box balance-box"
-          onClick={handleBalanceClick} // Add the click event
+          className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-center"
+          onClick={handleBalanceClick} 
         >
           <h2>Balance</h2>
         </div>
@@ -37,46 +39,33 @@ function BalancePage() {
 }
 
 // Define the SignIn component
-function SignIn({ setIsAuthenticated }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+function SignIn({ setIsAuthenticated, setUsername }) {
+  const [username, setLocalUsername] = useState('');
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    if (username === 'test' && password === 'test') {
-      setIsAuthenticated(true);
+    if (username.trim() !== '') {
+      setUsername(username);  // Set username in App component
+      setIsAuthenticated(true); // If there is a username then accept
     } else {
-      alert('Invalid credentials! Try "admin" / "password".');
+      alert('Please enter a username!');
     }
   };
 
   return (
     <div className="sign-in-container">
       <h1 className="text-2xl font-bold text-black-900 mb-10">Welcome to EZCargo</h1>
-      <form onSubmit={handleSignIn} className="">
+      <form onSubmit={handleSignIn}>
         <input
           type="text"
           placeholder="Username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="input-field"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setLocalUsername(e.target.value)}
           className="input-field"
         />
         <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
           Sign In
         </button>
-        <button type="submit" className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-          Register
-        </button>
-        <div className="text-sm">
-          <a href="google.com" className="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
-        </div>
       </form>
     </div>
   );
@@ -85,25 +74,30 @@ function SignIn({ setIsAuthenticated }) {
 // Export the App component
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState(''); // Store the username so we can display it
 
   return (
     <Router>
       <div className="app-container">
         <Routes>
+          {/* SignIn route */}
           <Route
             path="/"
             element={
-              isAuthenticated ? <Navigate to="/balance" replace /> : <SignIn setIsAuthenticated={setIsAuthenticated} />
+              isAuthenticated ? <Navigate to="/balance" replace /> : <SignIn setIsAuthenticated={setIsAuthenticated} setUsername={setUsername} />
             }
           />
-          <Route path="/balance" element={isAuthenticated ? <BalancePage /> : <Navigate to="/" replace />} />
+          
+          {/* Protected Routes */}
+          <Route path="/balance" element={isAuthenticated ? <Layout setIsAuthenticated={setIsAuthenticated}><BalancePage /></Layout> : <Navigate to="/" replace />} />
           <Route path="/upload-manifest" element={isAuthenticated ? <UploadManifestPage /> : <Navigate to="/" replace />} />
-          <Route path="/comment" element={isAuthenticated ? <CommentPage /> : <Navigate to="/" replace />} />
+          <Route path="/comment" element={isAuthenticated ? <Layout setIsAuthenticated={setIsAuthenticated}><CommentPage username={username} /></Layout> : <Navigate to="/" replace />}/>
           <Route path="/logs" element={isAuthenticated ? <ReportPage /> : <Navigate to="/" replace />} />
+          
         </Routes>
       </div>
     </Router>
   );
 }
 
-export default App; 
+export default App;
