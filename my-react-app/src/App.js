@@ -5,6 +5,7 @@ import ReportPage from './logs';
 import CommentPage from './comments';
 import Layout from './dashboard';
 import UploadManifestPage from './UploadManifestPage';
+import LoadUnloadPage from './loadUnloadPage';  
 
 import { useNavigate } from 'react-router-dom';
 
@@ -12,7 +13,11 @@ function BalancePage() {
   const navigate = useNavigate(); 
 
   const handleBalanceClick = () => {
-    navigate('/upload-manifest');
+    navigate('/upload-manifest', { state: { action: 'comment' } });  // Pass action via state to UploadManifestPage
+  };
+
+  const handleLoadUnloadClick = () => {
+    navigate('/upload-manifest', { state: { action: 'load-unload' } });  // Pass action via state to UploadManifestPage
   };
 
   return (
@@ -21,7 +26,7 @@ function BalancePage() {
         <div>
           <button
             className="w-full px-32 py-2 mb-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-center"
-            onClick={handleBalanceClick}  
+            onClick={handleLoadUnloadClick}  
           >
             Load/Unload
           </button>
@@ -91,8 +96,9 @@ function App() {
           {/* Protected Routes */}
           <Route path="/balance" element={isAuthenticated ? <Layout setIsAuthenticated={setIsAuthenticated}><BalancePage /></Layout> : <Navigate to="/" replace />} />
           <Route path="/upload-manifest" element={isAuthenticated ? <UploadManifestPage /> : <Navigate to="/" replace />} />
-          <Route path="/comment" element={isAuthenticated ? <Layout setIsAuthenticated={setIsAuthenticated}><CommentPage username={username} /></Layout> : <Navigate to="/" replace />}/>
+          <Route path="/comment" element={isAuthenticated ? <Layout setIsAuthenticated={setIsAuthenticated}><CommentPage username={username} /></Layout> : <Navigate to="/" replace />} />
           <Route path="/logs" element={isAuthenticated ? <ReportPage /> : <Navigate to="/" replace />} />
+          <Route path="/load-unload" element={isAuthenticated ? <LoadUnloadPage /> : <Navigate to="/" replace />} /> {/* New route for LoadUnloadPage */}
           
         </Routes>
       </div>

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate from react-router-dom
+import { useNavigate, useLocation } from 'react-router-dom';  // Import useLocation to access the passed state
 
-function TakeFile() {
+function UploadManifestPage() {
   const [file, setFile] = useState();
-  const navigate = useNavigate();  // Initialize useNavigate hook to programmatically navigate
+  const navigate = useNavigate();
+  const location = useLocation();  // Access the passed state
+
+  // Get the action from the state passed by App.js
+  const action = location.state?.action;
 
   function handleChange(event) {
     const selectedFile = event.target.files[0];
 
-    // Check if the selected file is a .txt file
     if (selectedFile && selectedFile.type !== 'text/plain') {
       alert('Please upload a .txt file');
       setFile(null); // Reset file state if the wrong file type is selected
@@ -42,8 +45,13 @@ function TakeFile() {
       .post(url, formData, config)
       .then((response) => {
         console.log(response.data); // Success response
-        // Redirect to the "comments" page after a successful upload
-        navigate('/comment');
+
+        // After a successful file upload, navigate to the correct page
+        if (action === 'comment') {
+          navigate('/comment');  // Go to the Comment Page
+        } else if (action === 'load-unload') {
+          navigate('/load-unload');  // Go to the Load/Unload Page
+        }
       })
       .catch((error) => {
         console.error('There was an error uploading the file!', error); // Error handling
@@ -65,4 +73,4 @@ function TakeFile() {
   );
 }
 
-export default TakeFile;
+export default UploadManifestPage;

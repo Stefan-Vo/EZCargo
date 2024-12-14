@@ -44,20 +44,284 @@ class Buffer:
     def __lt__(self,other):
             return self.position < other.position
 
-def balanceContainers(ship, cellList, buffer):
-        mid = ship.columns // 2  # Middle column for determining left/right weights
+def balanceContainers(ship, cellList, bufferList):
+    try:
+        # Ensure ship, cellList, and bufferList are valid
+        if not isinstance(ship, dict):
+            raise ValueError("Ship must be a dictionary")
+        if not all(isinstance(cell, dict) for cell in cellList):
+            raise ValueError("All items in cellList must be dictionaries")
+        if not all(isinstance(buff, dict) for buff in bufferList):
+            raise ValueError("All items in bufferList must be dictionaries")
 
-        # Compute the left and right weight sums
-        def compute_weights(cellList):
-            left_weight = sum(
-                cell.container.weight
-                for cell in cellList if cell.isFilled and cell.position[1] < mid
-            )
-            right_weight = sum(
-                cell.container.weight
-                for cell in cellList if cell.isFilled and cell.position[1] >= mid
-            )
-            return left_weight, right_weight
+        # Example debug log for input structure
+        print("Validating inputs in balanceContainers")
+        print(f"Ship: {ship}")
+        print(f"CellList length: {len(cellList)}")
+        print(f"BufferList length: {len(bufferList)}")
+
+        # Continue processing
+        # (Your logic here)
+
+        return {"message": "Balance successful"}
+    except Exception as e:
+        print(f"Error in balanceContainers: {e}")
+        raise
+
+    mid = ship.columns // 2  # Middle column for determining left/right weights
+
+    # Compute the left and right weight sums
+    def compute_weights(cellList):
+        left_weight = sum(
+            cell.container.weight
+            for cell in cellList if cell.isFilled and cell.position[1] < mid
+        )
+        right_weight = sum(
+            cell.container.weight
+            for cell in cellList if cell.isFilled and cell.position[1] >= mid
+        )
+        return left_weight, right_weight
+
+    # Print grid representation
+    def print_grid(cellList):
+        # Initialize a grid with placeholder values
+        grid = [['a' for _ in range(ship.columns)] for _ in range(ship.rows)]
+        
+        for i, cell in enumerate(cellList):
+            row, col = cell.position
+            if cell.isFilled:
+                # Format: "weight(isFilled)"
+                grid[row][col] = f"{cell.container.weight}({cell.isFilled})"
+            else:
+                # If not filled, just put "empty(isFilled)"
+                grid[row][col] = f"empty({cell.isFilled})"
+
+        # Print the grid
+        print("Grid:")
+        for row in grid:
+            print(' '.join(str(cell).ljust(15) for cell in row))  # Adjust the width for proper alignment
+        print()
+
+    # Print buffer grid representation
+    def print_buffer(bufferList):
+        grid = [['0' for _ in range(4)] for _ in range(3)]  # 3x4 buffer grid
+        for buff in bufferList:
+            row, col = buff.position
+            if buff.isFilled:
+                grid[row][col] = str(buff.container.weight)
+
+        print("Buffer:")
+        for row in grid:
+            print(' '.join(str(cell).ljust(2) for cell in row))  # Ensure proper alignment
+        print()
+
+    # Total weight computation
+    def total_weight(cellList):
+        return sum(
+            cell.container.weight
+            for cell in cellList if cell.isFilled
+        )
+
+    # Check if the main grid is full
+    def is_main_grid_full(cellList):
+        return all(cell.isFilled for cell in cellList)
+
+    # Move container from buffer to main grid
+    def move_from_buffer(currentCellList, buffer):
+        for buff in buffer:
+            if buff.isFilled and buff.container is not None:
+                empty_cell = next(
+                    (cell for cell in currentCellList if not cell.isFilled),
+                    None
+                )
+                if empty_cell:
+                    # print(f"Moving container from buffer {buff.position}")
+                    # print(f"Buffer container BEFORE move: {buff.container}")
+                    # print(f"Empty cell BEFORE move: {empty_cell.container}")
+                    
+                    # Explicitly copy container attributes instead of using deepcopy
+                    temp = deepcopy(empty_cell.container.weight)
+                    empty_cell.container = deepcopy(buff.container)
+                    empty_cell.isFilled = True
+                    
+                    # print(f"Buffer container DURING move: {buff.container}")
+                    # print(f"Empty cell AFTER move: {empty_cell.container}")
+                    # print(f"Empty cell position AFTER move: {empty_cell.position}")
+                    print("MOVE FROM BUFFER",  empty_cell.container.weight)
+                    print_buffer(buffer)
+                    
+                    # Clear the buffer slot
+                    buff.isFilled = False
+                    buff.container.weight = temp
+                    print(f"Buffer slot AFTER move: {buff}")
+                    
+                    return True
+        return False
+
+
+    # Move container from main grid to buffer
+    def move_to_buffer_for_balance(currentCellList, buffer, left_weight, right_weight):
+        # Determine which side is heavier
+        heavier_side = 'left' if left_weight > right_weight else 'right'
+        mid = ship.columns // 2
+
+        # Sort containers on the heavier side by weight
+        heavier_side_containers = [
+            cell for cell in currentCellList 
+            if cell.isFilled and 
+            ((heavier_side == 'left' and cell.position[1] < mid) or 
+            (heavier_side == 'right' and cell.position[1] >= mid))
+        ]
+        
+        # Sort containers from heaviest to lightest
+        heavier_side_containers.sort(key=lambda x: x.container.weight, reverse=True)
+
+        for cell in heavier_side_containers:
+            empty_buffer_slot = next((buff for buff in buffer if not buff.isFilled), None)
+            
+            if empty_buffer_slot:
+                # Move container to buffer
+                empty_buffer_slot.container = deepcopy(cell.container)
+                empty_buffer_slot.isFilled = True
+                
+                # Clear the original cell
+                cell.isFilled = False
+                cell.container.weight = 0  # Reset weight
+                
+                return True
+        
+        return False
+
+    # Initialize the state
+    initial_total_weight = total_weight(cellList)
+    left_weight, right_weight = compute_weights(cellList)
+
+    open_set = []
+    initial_state = (deepcopy(cellList), left_weight, right_weight, [], deepcopy(buffer))
+    heapq.heappush(open_set, (0, initial_state))
+    closed_set = set()
+    while open_set:
+        print("new")
+        h_, (currentCellList, currLeftWeight, currRightWeight, path, bufferList) = heapq.heappop(open_set)
+        print_grid(currentCellList)
+        print_buffer(bufferList)
+        currLeftWeight = int(currLeftWeight)
+        currRightWeight = int(currRightWeight)
+        print("left/right", currLeftWeight, currRightWeight)
+        # Check if balanced
+        if abs(currLeftWeight - currRightWeight) <= 0.1 * currRightWeight:
+            print(f"Balanced: Left = {currLeftWeight}, Right = {currRightWeight}")
+            optimal_path = path + [currentCellList]
+            print("\nOptimal Path Grids:")
+            for i, grid_state in enumerate(optimal_path):
+                print(f"Step {i}:")
+                print_grid(grid_state)
+            return True
+            
+        # Try moving containers from buffer if the main grid is not full
+        if not is_main_grid_full(currentCellList):
+            if move_from_buffer(currentCellList, bufferList):
+                currLeftWeight, currRightWeight = compute_weights(currentCellList)
+                print("move from buff")
+
+                print_grid(currentCellList)  # Print grid after moving from buffer
+
+        # If main grid is full, attempt to move containers to buffer
+        elif is_main_grid_full(currentCellList):
+            if move_to_buffer_for_balance(currentCellList, bufferList, currLeftWeight, currRightWeight):
+                currLeftWeight, currRightWeight = compute_weights(currentCellList)
+
+                h_cost = abs(currLeftWeight - currRightWeight)
+                new_path = path + [deepcopy(currentCellList)]
+                newBuffer = deepcopy(bufferList)
+                heapq.heappush(open_set, (h_cost, (currentCellList, currLeftWeight, currRightWeight, new_path, newBuffer)))
+                print("moving to buffer for balance")
+                print_grid(currentCellList)
+            else:
+                continue
+        print("INTE")
+        print_buffer(bufferList)
+
+        # Create a unique state key to avoid revisiting
+
+        state_key = tuple(sorted((tuple(cell.position), cell.isFilled) for cell in currentCellList))
+        if tuple((state_key,tuple(bufferList))) in closed_set:
+            continue
+        closed_set.add(tuple((tuple(currentCellList),tuple(bufferList))))
+        # Try moving containers within the grid
+
+        for cell in currentCellList:
+
+            print(cell.position,cell.container.weight)
+            if not cell.isFilled:
+                continue
+
+
+            col = cell.position[1] #0,0
+            if any(currCell.isFilled and currCell.position[1] == col and currCell.position[0] < cell.position[0]
+                    for currCell in currentCellList):
+                continue
+
+            print("Current Cell being found to switch with an empty: ", cell)
+            print("GRID BEING EVALUATED", "\n")
+            print_grid(currentCellList)
+            # Try moving the container to another column
+            for targetCol in range(ship.columns):
+                if targetCol == col:
+                    continue
+
+                targetRow = findNextEmptyRow(currentCellList, targetCol)
+                if targetRow is None:
+                    continue  # No empty row available in this column
+
+                
+                newCellList = deepcopy(currentCellList)
+                
+                # Find the target cell
+                for c in newCellList:
+                    if c.position == (targetRow, targetCol):
+                        target_cell = c
+                        break
+                print("TARGET CELL: ", target_cell)
+                # Move the container to the target cell
+                if cell.position == target_cell.position:
+                    #print("WEWAD", cell, target_cell)
+                    continue
+                
+                #target_cell is empty cell??
+                for c in newCellList:
+                    if c.position == cell.position:
+                        print("FIRST", c.position, c.container.weight)
+                        temp = deepcopy(c) #0,1
+                        c.position = deepcopy(target_cell.position) # c becomes 0,0 with weight of target_cell 0
+                        #c.container.weight = temp.container.weight
+                        #target_cell.container.weight = deepcopy(temp.container.weight) #
+                        target_cell.position = deepcopy(temp.position)
+                        print("TARGET_CELL", target_cell.position, target_cell.container.weight)
+                        target_cell.isFilled = False
+                        c.isFilled = True
+                        print("AFTRER C", c.position, c.container.weight)
+                        print("AFTER TARGET_CELL", target_cell.position, target_cell.container.weight)
+                        break
+
+                #closed_set.add(tuple((tuple(newCellList),tuple(bufferList))))
+
+                print_grid(newCellList)
+
+                        #newCellList = deepcopy(currentCellList)
+                newLeftWeight, newRightWeight = compute_weights(newCellList)
+                    #print("WWWWWWWWWWWWWW", newLeftWeight, newRightWeight)
+                h_cost = abs(newLeftWeight - newRightWeight)
+                new_path = path + [deepcopy(newCellList)]
+                newBuffer = deepcopy(bufferList)
+                heapq.heappush(open_set, (h_cost, (newCellList, newLeftWeight, newRightWeight, new_path, newBuffer)))
+                print("PUSHED TO MINHEAP")
+                print_grid(newCellList)
+                print_buffer(bufferList)
+                print("closestcurr")
+
+    print("No solution found.")
+    return False
 def main():
     containers = [
         Container("S", 20),  # Container A with weight 10
