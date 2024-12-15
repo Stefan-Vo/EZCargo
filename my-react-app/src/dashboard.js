@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Layout = ({ children }) => {
+const Layout = ({ children , userName}) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
   // Function to toggle the sidebar visibility
@@ -44,6 +44,9 @@ const Layout = ({ children }) => {
                 >
                   Reports
                 </Link>
+                <div className="absolute left-1/2 transform -translate-x-1/2">
+                  <span className="text-white font-medium"> Welcome, {userName} </span>
+                </div>
                 <button
                   onClick={toggleSidebar}
                   className="absolute top-4 right-2 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600"

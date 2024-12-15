@@ -61,15 +61,15 @@ def main():
         Container("WEEAE", 0)   # Container L with weight 18
     ]
 
-    ship_matrix = np.zeros((3, 4), dtype=int) 
+    ship_matrix = np.zeros((8, 12), dtype=int) 
     my_ship = ship(ship_matrix)
 
 
     
     
-    positions = [(0, 0), (0, 1), (0, 2), (0, 3), 
-                 (1, 0), (1, 1), (1, 2), (1, 3),
-                 (2, 0), (2, 1), (2, 2), (2, 3)]
+    positions = [(i, j) for i in range(1, 9) for j in range(1, 13)]
+
+    
 
     buffer = []
     for pos in positions:
@@ -135,7 +135,7 @@ def main():
     
     def balanceContainers(ship, cellList, buffer):
         mid = ship.columns // 2  # Middle column for determining left/right weights
-
+        print(type(ship), type(cellList), type(buffer))
         # Compute the left and right weight sums
         def compute_weights(cellList):
             left_weight = sum(

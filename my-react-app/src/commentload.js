@@ -3,7 +3,7 @@ import axios from "axios";
 import Layout from './dashboard'; 
 import './App.css'; 
 
-function CommentPage() {
+function CommentLoad() {
   const [gridItems, setGridItems] = useState(
     Array.from({ length: 96 }, (_, index) => ({
       id: index + 1,
@@ -20,8 +20,6 @@ function CommentPage() {
   const [newWeight, setNewWeight] = useState("");
   const [ship, setShip] = useState("SHIP1");
   const [isBalancing, setIsBalancing] = useState(false);
-  const [message, setMessage] = useState('');
-
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -38,42 +36,6 @@ function CommentPage() {
 
     fetchComments();
   }, []);
-
-
-  const fetchAndUpdateGrid = async () => {
-    try {
-        const filename = 'uploaded-file.txt'; // Replace with the actual filename if needed
-        const response = await fetch('/process-upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error fetching data: ${response.status}`);
-        }
-
-        const processedData = await response.json();
-
-        // Update the grid items based on the response
-        const updatedGrid = gridItems.map((item) => {
-            const matchingData = processedData.find((data) => data.id === item.id);
-            return matchingData
-                ? {
-                      ...item,
-                      name: matchingData.name,
-                      weight: matchingData.weight,
-                  }
-                : item;
-        });
-
-        setGridItems(updatedGrid); // Update the state with the new grid
-        setMessage('Grid updated successfully!');
-    } catch (error) {
-        console.error('Error updating grid:', error);
-        setMessage(`Failed to update grid: ${error.message}`);
-    }
-  };
 
   const handleBalance = async () => {
     try {
@@ -190,21 +152,28 @@ function CommentPage() {
           <h1 className="text-4xl font-bold text-white leading-tight text-center">EZCargo</h1>
         </div>
   
-        <button 
-        onClick={fetchAndUpdateGrid} 
-        className="px-8 py-4 text-xl font-bold bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors">
-        Update Grid
-        </button>
-    <div className="grid-container">
-        {gridItems.map((item) => (
+        <div className="grid-container">
+          {gridItems.map((item, index) => (
             <div className="grid-item bg-cyan-950" key={item.id}>
-                <div className="name">
-                    <strong>{item.name}</strong>
-                </div>
-                <div className="weight">{item.weight}</div>
+              <div
+                className="name"
+                onClick={() => handleOpenModal(index)}
+                role="button"
+                tabIndex={0}
+              >
+                {item.name}
+              </div>
+              <div
+                className="weight"
+                onClick={() => handleOpenModal(index)}
+                role="button"
+                tabIndex={0}
+              >
+                {item.weight}
+              </div>
             </div>
-        ))}
-    </div>
+          ))}
+        </div>
 
         <div className="flex justify-between gap-5 m-5">
           <div className="comment-section">
@@ -238,7 +207,7 @@ function CommentPage() {
             onClick={handleBalance}
             disabled={isBalancing}
           >
-            {isBalancing ? 'Balancing...' : 'Balance'}
+            {isBalancing ? 'Loading...' : 'Load'}
           </button>
         </div>
 
@@ -247,9 +216,6 @@ function CommentPage() {
               Next
             </button>
           </div>
-
-    
-
         </div>
 
         {isModalOpen && (
@@ -296,4 +262,4 @@ function CommentPage() {
   );
 }
 
-export default CommentPage;
+export default CommentLoad;
