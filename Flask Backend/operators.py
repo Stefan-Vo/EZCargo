@@ -45,7 +45,7 @@ class Buffer:
     
     def __lt__(self,other):
             return self.position < other.position
-
+    
 def balanceContainers(ship, cellList, buffer):
     mid = ship.columns // 2  # Middle column for determining left/right weights
     print(type(ship), type(cellList), type(buffer))
@@ -166,7 +166,7 @@ def balanceContainers(ship, cellList, buffer):
                 if targetCol == col:
                     continue
                     
-                targetRow = findNextEmptyRow(currentCellList, targetCol)
+                targetRow = findNextEmptyRow(currentCellList, targetCol, ship)
                 if targetRow is None:
                     continue
                     
@@ -238,7 +238,7 @@ def balanceContainers(ship, cellList, buffer):
     print("No solution found.")
     return False
 
-def findNextEmptyRow(cellList, target_col):
+def findNextEmptyRow(cellList, target_col, my_ship):
     # get all cells in this col
     column_cells = [cell for cell in cellList if cell.position[1] == target_col]
     
@@ -266,6 +266,30 @@ def findNextEmptyRow(cellList, target_col):
             return row
 
     return None
+
+
+def apply_gravity(cellList):
+    columns = 12  # Number of columns in your grid
+    rows = 8      # Number of rows in your grid
+    
+    # Process each column
+    for col in range(1, columns + 1):
+        # Start from the bottom row
+        for bottom_row in range(rows, 1, -1):
+            if not any(cell.isFilled and cell.position == (bottom_row, col) for cell in cellList):
+                # Found an empty space, look for container above to drop down
+                for top_row in range(bottom_row - 1, 0, -1):
+                    above_cell = next((cell for cell in cellList if cell.position == (top_row, col) and cell.isFilled), None)
+                    if above_cell:
+                        # Found a container above, move it down
+                        bottom_cell = next(cell for cell in cellList if cell.position == (bottom_row, col))
+                        
+                        # Swap containers
+                        bottom_cell.container = above_cell.container
+                        bottom_cell.isFilled = True
+                        above_cell.container = Container("UNUSED", 0)
+                        above_cell.isFilled = False
+                        break
     
     
 def main():
@@ -580,28 +604,6 @@ def main():
     #     print_buffer(buffer)
     #     return True
         
-    # def apply_gravity(cellList):
-    #     columns = 12  # Number of columns in your grid
-    #     rows = 8      # Number of rows in your grid
-        
-    #     # Process each column
-    #     for col in range(1, columns + 1):
-    #         # Start from the bottom row
-    #         for bottom_row in range(rows, 1, -1):
-    #             if not any(cell.isFilled and cell.position == (bottom_row, col) for cell in cellList):
-    #                 # Found an empty space, look for container above to drop down
-    #                 for top_row in range(bottom_row - 1, 0, -1):
-    #                     above_cell = next((cell for cell in cellList if cell.position == (top_row, col) and cell.isFilled), None)
-    #                     if above_cell:
-    #                         # Found a container above, move it down
-    #                         bottom_cell = next(cell for cell in cellList if cell.position == (bottom_row, col))
-                            
-    #                         # Swap containers
-    #                         bottom_cell.container = above_cell.container
-    #                         bottom_cell.isFilled = True
-    #                         above_cell.container = Container("UNUSED", 0)
-    #                         above_cell.isFilled = False
-    #                         break
 
 
     # # print(sift(isBalanced, siftCellGrid, siftBufferGrid))
@@ -642,7 +644,7 @@ def main():
 
     #printOriginalMatrix()
     
-    #balanceContainers(my_ship, cells)
+    balanceContainers(my_ship, cells, buffer)
     
     #printBalanceMatrix()
 
@@ -652,27 +654,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-def apply_gravity(cellList):
-    columns = 12  # Number of columns in your grid
-    rows = 8      # Number of rows in your grid
-    
-    # Process each column
-    for col in range(1, columns + 1):
-        # Start from the bottom row
-        for bottom_row in range(rows, 1, -1):
-            if not any(cell.isFilled and cell.position == (bottom_row, col) for cell in cellList):
-                # Found an empty space, look for container above to drop down
-                for top_row in range(bottom_row - 1, 0, -1):
-                    above_cell = next((cell for cell in cellList if cell.position == (top_row, col) and cell.isFilled), None)
-                    if above_cell:
-                        # Found a container above, move it down
-                        bottom_cell = next(cell for cell in cellList if cell.position == (bottom_row, col))
-                        
-                        # Swap containers
-                        bottom_cell.container = above_cell.container
-                        bottom_cell.isFilled = True
-                        above_cell.container = Container("UNUSED", 0)
-                        above_cell.isFilled = False
-                        break
 
