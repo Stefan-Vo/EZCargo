@@ -13,6 +13,10 @@ Team EZCargo                                                (This webpage was la
 
 4) This file [EZCargo](https://drive.google.com/file/d/18nPjbnChVlkpwWbTvfgGqAVyc863hFFs/view?usp=drive_link) shows evidence of our efforts to design our software.
 
+6) This URL https://github.com/Stefan-Vo/EZCargo/tree/main points to a GitHub repository of our code.
+  
+7) This [Youtube Video](https://youtu.be/fksXPIlm6Z0) shows our software solving a balance and a transfer test case(the two 6th test cases that were specificied by Dr. Keogh). 
+
 
  #9) We would like to point out the following limitations:
    
