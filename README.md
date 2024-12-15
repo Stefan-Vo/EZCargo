@@ -1,31 +1,28 @@
-# Project Description
+Team EZCargo
+  - Stefan Vo, svo025@ucr.edu
+  - Devin Felix, dfeli020@ucr.edu
+  - Maggie Wang, Mwang259@ucr.edu
+  - Yash Singhal, yash.singhal@email.ucr.edu
+  - Chengzhe Liu, chengzhe.liu@email.ucr.edu
+##    
+1) This file  [EZCargo.pdf](https://drive.google.com/file/d/1beYX8-zX-7rJYVw3YMuGj5WU6e2qAFcM/view?usp=drive_link) contains evidence of our efforts to plan our elicitation of requirements from Mr. Keogh, and any notes taken during the elicitation.
 
-## Frameworks Used
+2) This file [EZCargoProjectPitchORIGINAL.pdf](https://drive.google.com/file/d/1Feu25T59oFOEw2aH42fqTe2HVMfJYk3_/view?usp=drive_link) contains our original pitch to Mr.Keogh, which was delivered on  October 18th at 5:20pm
 
-### Flask
-- API endpoints (e.g., routes for data submission and retrieval).
-- Serving static files (if needed, like a bundled React app).
-- Flask creates a REST API that React (frontend) can call using HTTP requests.
--API endpoints are defined in Flask, e.g., /run-algorithm or /submit-comment.
-### Axios
-- For API calls
-- Simplifies making API calls (GET, POST, PUT, DELETE) for Flask backend.
-### React
-- Frontend for User Interface
-- React communicates with Flask by sending requests to Flask’s API endpoints.
-#### Tailwind 
-- for better styling 
-## EZCargo 🚢
+3) This file [EZCargoProjectPitchCorrected.pdf](https://docs.google.com/presentation/d/1CHEx5_pNDrbD7PnfaF6wYRDJaad3WkJQ4bd_zzN69uE/edit?usp=drive_link) contains a new verison of the pitch, with all the corrections, amendments and deletions suggested by Mr.Keogh(and/or Dr. Keogh)
 
-EZCargo is a cutting-edge system designed to simplify and optimize cargo operations for shipping companies. Whether it’s loading, unloading, or ensuring proper balance, EZCargo ensures efficiency, safety, and compliance with industry standards.
+4) This file [EZCargo](https://drive.google.com/file/d/18nPjbnChVlkpwWbTvfgGqAVyc863hFFs/view?usp=drive_link) shows evidence of our efforts to design our software.
 
-extra pip installs:
-pip install flask-cors (For Connecting Flask and React)
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init
+9) We would like to point out the following limitations:
+   
+    •We did not implement "recovery from power outage"
+    
+    •We did not implement all checks for the container name, you can't type UNUSED but you can type unused or NAN
+    
+    •We did not implement the log file to update every single atomic action
+    
+    •We did not finish the outbound txt to properly update
 
-## Primary Tasks:
-Loading and Unloading Containers: Allow operators to ask for an "optimal sequence of moves."
-Balancing: Provide an algorithm to balance the ship's load, ensuring the left and right sides differ by no more than 10%.
-Separation of Operations:
-Ensure that load/unload and balance are distinct operations and cannot occur simultaneously.
+
+11) We would like to acknowledge the following resources that were helpful in completing this project. We watched these youtube videos: [Youtube](https://www.youtube.com/watch?v=SqcY0GlETPk&t), [Youtube](https://www.youtube.com/watch?v=QwarZBtFoFA)
+  
