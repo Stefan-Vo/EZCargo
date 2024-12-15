@@ -4,7 +4,6 @@ import Layout from './dashboard';
 import './App.css'; 
 import { useLocation } from 'react-router-dom';
 
-
 function CommentPage() {
   const location = useLocation();
 
@@ -64,19 +63,17 @@ function CommentPage() {
 
         const processedData = await response.json();
 
-        // Step 1: Create a 2D array representing the rows of the grid
         const rows = [];
         for (let i = 0; i < gridItems.length; i += 12) {
             rows.push(gridItems.slice(i, i + 12));
         }
 
-        // Step 2: Reverse the rows array
+        // reverse the rows array
         const reversedRows = rows.reverse();
 
-        // Step 3: Flatten the reversed rows back into a single array
         const reversedGridItems = reversedRows.flat();
 
-        // Step 4: Update the grid items based on the processed data
+        // Updating the grid items based on the processed data
         const updatedGrid = reversedGridItems.map((item, index) => {
             const matchingData = processedData.find((data) => data.id === item.id);
             return matchingData
@@ -84,7 +81,7 @@ function CommentPage() {
                 : item;
         });
 
-        // Step 5: Update the state with the reversed and updated grid
+        //  Update the state with the reversed and updated grid
         setGridItems(updatedGrid);
         setMessage('Grid updated successfully!');
     } catch (error) {
