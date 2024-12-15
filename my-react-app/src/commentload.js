@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import Layout from './dashboard'; 
 import './App.css'; 
-import { useLocation } from 'react-router-dom';
 
-function CommentPage() {
-  const location = useLocation();
-
+function CommentLoad() {
   const [gridItems, setGridItems] = useState(
-      Array.from({ length: 96 }, (_, index) => ({
-          id: index + 1,
-          name: `Name ${index + 1}`,
-          weight: '0 Lbs: ',
-      }))
+    Array.from({ length: 96 }, (_, index) => ({
+      id: index + 1,
+      name: `Name ${index + 1}`,
+      weight: '0 Lbs: ',
+    }))
   );
 
   const [comment, setComment] = useState("");
@@ -23,9 +20,6 @@ function CommentPage() {
   const [newWeight, setNewWeight] = useState("");
   const [ship, setShip] = useState("SHIP1");
   const [isBalancing, setIsBalancing] = useState(false);
-  const [message, setMessage] = useState('');
-
-  const filename = localStorage.getItem('uploadedFile');
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -43,118 +37,61 @@ function CommentPage() {
     fetchComments();
   }, []);
 
-
-  const fetchAndUpdateGrid = async () => {
-    if (!filename) {
-        setMessage('Filename is missing!');
-        return;
-    }
-
+  const handleBalance = async () => {
     try {
-        const response = await fetch('/process-upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error fetching data: ${response.status}`);
-        }
-
-        const processedData = await response.json();
-
-        const rows = [];
-        for (let i = 0; i < gridItems.length; i += 12) {
-            rows.push(gridItems.slice(i, i + 12));
-        }
-
-        // reverse the rows array
-        const reversedRows = rows.reverse();
-
-        const reversedGridItems = reversedRows.flat();
-
-        // Updating the grid items based on the processed data
-        const updatedGrid = reversedGridItems.map((item, index) => {
-            const matchingData = processedData.find((data) => data.id === item.id);
-            return matchingData
-                ? { ...item, name: matchingData.name, weight: matchingData.weight }
-                : item;
-        });
-
-        //  Update the state with the reversed and updated grid
-        setGridItems(updatedGrid);
-        setMessage('Grid updated successfully!');
-    } catch (error) {
-        console.error('Error updating grid:', error);
-        setMessage(`Failed to update grid: ${error.message}`);
-    }
-};
-
-const handleBalance = async () => {
-  try {
-    setIsBalancing(true);
-    
-    // Convert grid items to the format expected by the backend
-    const cellList = gridItems.map((item, index) => {
-      const row = Math.floor(index / 12) + 1;
-      const column = (index % 12) + 1;
-      return {
-        row: row,
-        column: column,
-        weight: parseInt(item.weight.replace(' Lbs: ', '')) || 0,
-        name: item.name
-      };
-    });
-
-    console.log("Sending to backend:", cellList); // Debug log
-
-    const response = await axios.post("http://localhost:5000/balance", {
-      ship: "SHIP1",
-      cellList: cellList,
-      bufferList: [] // Or include buffer data if required
-    });
-
-    console.log("Backend response:", response); // Debug log to ensure backend is responding
-    
-    if (response.status === 200) {
-      console.log("Received from backend:", response.data); // Debug log
-
-      const newGridItems = Array.from({ length: gridItems.length }, (_, index) => {
-        const balancedItem = response.data.find(item => item.id === index + 1);
-        if (balancedItem) {
-          return {
-            id: index + 1,
-            name: balancedItem.name,
-            weight: balancedItem.weight
-          };
-        }
+      setIsBalancing(true);
+      
+      // Convert grid items to the format expected by the backend
+      const cellList = gridItems.map((item, index) => {
+        const row = Math.floor(index / 12) + 1;
+        const column = (index % 12) + 1;
         return {
-          id: index + 1,
-          name: "UNUSED",
-          weight: "0 Lbs: "
+          row: row,
+          column: column,
+          weight: parseInt(item.weight.replace(' Lbs: ', '')) || 0,
+          name: item.name
         };
       });
-
-      console.log("Updating grid with:", newGridItems); // Debug log
-      setGridItems(newGridItems);
-      alert("Containers balanced successfully!");
+  
+      console.log("Sending to backend:", cellList); // Debug log
+  
+      const response = await axios.post("http://localhost:5000/balance", {
+        ship: "SHIP1",
+        cellList: cellList,
+        bufferList: []
+      });
+  
+      if (response.status === 200) {
+        console.log("Received from backend:", response.data); // Debug log
+        
+        // Create a new array with the same length as gridItems
+        const newGridItems = Array.from({ length: gridItems.length }, (_, index) => {
+          const balancedItem = response.data.find(item => item.id === index + 1);
+          if (balancedItem) {
+            return {
+              id: index + 1,
+              name: balancedItem.name,
+              weight: balancedItem.weight
+            };
+          }
+          return {
+            id: index + 1,
+            name: "UNUSED",
+            weight: "0 Lbs: "
+          };
+        });
+  
+        console.log("Updating grid with:", newGridItems); // Debug log
+        setGridItems(newGridItems);
+        alert("Containers balanced successfully!");
+      }
+    } catch (error) {
+      console.error("Error balancing containers:", error);
+      alert("An error occurred while balancing containers.");
+    } finally {
+      setIsBalancing(false);
     }
-  } catch (error) {
-    console.error("Error balancing containers:", error);
-    alert("An error occurred while balancing containers.");
-    
-    // Check specific error
-    if (error.response) {
-      console.error("Backend error response:", error.response);
-    } else if (error.request) {
-      console.error("No response received from backend:", error.request);
-    } else {
-      console.error("Error in setting up request:", error.message);
-    }
-  } finally {
-    setIsBalancing(false);
-  }
-};
+  };
 
   const handleOpenModal = (index) => {
     setCurrentIndex(index);
@@ -215,21 +152,28 @@ const handleBalance = async () => {
           <h1 className="text-4xl font-bold text-white leading-tight text-center">EZCargo</h1>
         </div>
   
-        <button 
-        onClick={fetchAndUpdateGrid} 
-        className="px-8 py-4 text-xl font-bold bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors">
-        Update Grid
-        </button>
-    <div className="grid-container">
-        {gridItems.map((item) => (
+        <div className="grid-container">
+          {gridItems.map((item, index) => (
             <div className="grid-item bg-cyan-950" key={item.id}>
-                <div className="name">
-                    <strong>{item.name}</strong>
-                </div>
-                <div className="weight">{item.weight}</div>
+              <div
+                className="name"
+                onClick={() => handleOpenModal(index)}
+                role="button"
+                tabIndex={0}
+              >
+                {item.name}
+              </div>
+              <div
+                className="weight"
+                onClick={() => handleOpenModal(index)}
+                role="button"
+                tabIndex={0}
+              >
+                {item.weight}
+              </div>
             </div>
-        ))}
-    </div>
+          ))}
+        </div>
 
         <div className="flex justify-between gap-5 m-5">
           <div className="comment-section">
@@ -263,7 +207,7 @@ const handleBalance = async () => {
             onClick={handleBalance}
             disabled={isBalancing}
           >
-            {isBalancing ? 'Balancing...' : 'Balance'}
+            {isBalancing ? 'Loading...' : 'Load'}
           </button>
         </div>
 
@@ -272,9 +216,6 @@ const handleBalance = async () => {
               Next
             </button>
           </div>
-
-    
-
         </div>
 
         {isModalOpen && (
@@ -321,4 +262,4 @@ const handleBalance = async () => {
   );
 }
 
-export default CommentPage;
+export default CommentLoad;
