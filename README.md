@@ -1,4 +1,4 @@
-Team EZCargo
+Team EZCargo                                                (This webpage was last edited on 12-14-2024)
   - Stefan Vo, svo025@ucr.edu
   - Devin Felix, dfeli020@ucr.edu
   - Maggie Wang, Mwang259@ucr.edu
