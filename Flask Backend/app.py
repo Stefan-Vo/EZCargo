@@ -8,6 +8,7 @@ import numpy as np
 import os
 from werkzeug.utils import secure_filename
 import re
+from flask_cors import CORS
 
 
 app = Flask(__name__)
@@ -91,59 +92,32 @@ def get_comments():
 @app.route('/balance', methods=['POST'])
 def balance_endpoint():
     try:
-        # Check if file-based containers are requested
-        use_uploaded_file = request.get_json().get('useUploadedFile', False)
-        
-        # Create Ship object
+        print("Received request:", request)  
+        data = request.get_json()
+        print("Received data:", data)  
+
+        if not data:
+            return jsonify({"error": "No data received in the request"}), 400
+
+        if 'cellList' not in data:
+            print("Missing 'cellList' in the request")
+            return jsonify({"error": "'cellList' is required"}), 400
+
         ship_matrix = np.zeros((8, 12), dtype=int)
         my_ship = ship(ship_matrix)
+        
+        # initialize cells based on the incoming request
+        cells = []
+        for item in data.get("cellList", []):
+            position = (item.get("row", 1), item.get("column", 1))
+            weight = item.get("weight", 0)
+            name = item.get("name", "UNUSED")
+            container = Container(name, weight)
+            cell = Cell(position=position, isFilled=name != "UNUSED", container=container)
+            cells.append(cell)
 
-        # Determine how to get containers
-        if use_uploaded_file:
-            # Get the most recently uploaded filename
-            recent_files = os.listdir(app.config['UPLOAD_FOLDER'])
-            if not recent_files:
-                return jsonify({"error": "No uploaded files found"}), 400
-            
-            # Get the most recent file (last uploaded)
-            recent_filename = max(recent_files, key=lambda f: os.path.getctime(os.path.join(app.config['UPLOAD_FOLDER'], f)))
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], recent_filename)
-            
-            # Parse containers from the uploaded file
-            uploaded_containers = parse_uploaded_containers(filepath)
-            
-            # Convert parsed containers to Cell objects
-            cells = []
-            for container_data in uploaded_containers:
-                position = container_data['position']
-                container = Container(container_data['id'], container_data['weight'])
-                
-                cell = Cell(
-                    position=position,
-                    isFilled=container.id != "UNUSED",
-                    container=container
-                )
-                cells.append(cell)
-        else:
-            # Use containers from frontend grid items
-            cells = []
-            for item in request.get_json().get("cellList", []):
-                position = (item.get("row", 1), item.get("column", 1))
-                weight = item.get("weight", 0)
-                name = item.get("name", "UNUSED")
-                
-                # Create Container object
-                container = Container(name, weight)
-                
-                # Create Cell object
-                cell = Cell(
-                    position=position,
-                    isFilled=name != "UNUSED",
-                    container=container
-                )
-                cells.append(cell)
+        print("Cells successfully parsed:", cells)
 
-        # Create empty buffer list
         buffer = []
         for i in range(8):
             for j in range(12):
@@ -153,10 +127,11 @@ def balance_endpoint():
                     container=Container("UNUSED", 0)
                 ))
 
-        # Call balance function
-        result = balanceContainers(my_ship, cells, buffer)
+        print("Buffer list created.")
 
-        # Convert result back to frontend format
+        result = balanceContainers(my_ship, cells, buffer)
+        print("Result from balanceContainers:", result)
+
         response_data = []
         for cell in cells:
             response_data.append({
@@ -166,6 +141,7 @@ def balance_endpoint():
                 "position": cell.position
             })
 
+        print("Sending response:", response_data)
         return jsonify(response_data), 200
 
     except Exception as e:
@@ -175,15 +151,15 @@ def balance_endpoint():
 @app.route('/upload-file', methods=['POST'])
 def upload_file():
     try:
-        print("Received upload request")  # Debug log
-        print("Files:", request.files)  # Debug log
+        print("Received upload request")  # Debug 
+        print("Files:", request.files)  # Debug 
         
         if 'file' not in request.files:
-            print("No file in request")  # Debug log
+            print("No file in request")  # Debug 
             return jsonify({"error": "No file part"}), 400
             
         file = request.files['file']
-        print(f"Received file: {file.filename}")  # Debug log
+        print(f"Received file: {file.filename}")  # Debug 
         
         if file.filename == '':
             return jsonify({"error": "No selected file"}), 400
@@ -191,10 +167,9 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            print(f"Saving to: {filepath}")  # Debug log
+            print(f"Saving to: {filepath}")  # Debug 
             file.save(filepath)
             
-            # Return filename in response
             return jsonify({"message": "File uploaded successfully", "filename": filename}), 200
             
         return jsonify({"error": "Invalid file type"}), 400
@@ -216,13 +191,13 @@ def parse_uploaded_containers(filepath):
     try:
         with open(filepath, 'r') as file:
             for line in file:
-                # Use regex to parse each line
+                # use regex to parse each line
                 match = re.match(r'\[(\d{2}),(\d{2})\], \{(\d{5})\}, (.+)', line.strip())
                 
                 if match:
                     row, col, weight, container_id = match.groups()
                     
-                    # Convert row and column to 1-based indexing
+                    # convert row and column to 1-based indexing
                     position = (int(row), int(col))
                     
                     # Convert weight to int, handle NAN or zero weights
@@ -235,7 +210,7 @@ def parse_uploaded_containers(filepath):
                     if container_id.strip() in ['NAN', 'UNUSED'] or weight_int == 0:
                         container_id = "UNUSED"
                     
-                    # Create a container-like dictionary
+                    # container-like dictionary
                     containers.append({
                         'position': position,
                         'weight': weight_int,
@@ -251,29 +226,24 @@ def parse_uploaded_containers(filepath):
 @app.route('/process-upload', methods=['POST'])
 def process_upload():
     try:
-        # Get the filename from the request
         data = request.get_json()
         filename = data.get('filename')
         
         if not filename:
             return jsonify({"error": "No filename provided"}), 400
         
-        # Construct full filepath
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         
         # Check if file exists
         if not os.path.exists(filepath):
             return jsonify({"error": "File not found"}), 404
         
-        # Parse containers
         containers = parse_uploaded_containers(filepath)
         
-        # Prepare response data
         positions = [(i, j) for i in range(1, 9) for j in range(1, 13)]
         response_data = []
         
         for pos in positions:
-            # Find matching container for this position
             matching_container = next((c for c in containers if c['position'] == pos), None)
             
             if matching_container:

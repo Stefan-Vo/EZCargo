@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import Layout from './dashboard'; 
 import './App.css'; 
+import { useLocation } from 'react-router-dom';
+
 
 function CommentPage() {
+  const location = useLocation();
+
   const [gridItems, setGridItems] = useState(
-    Array.from({ length: 96 }, (_, index) => ({
-      id: index + 1,
-      name: `Name ${index + 1}`,
-      weight: '0 Lbs: ',
-    }))
+      Array.from({ length: 96 }, (_, index) => ({
+          id: index + 1,
+          name: `Name ${index + 1}`,
+          weight: '0 Lbs: ',
+      }))
   );
 
   const [comment, setComment] = useState("");
@@ -22,6 +26,7 @@ function CommentPage() {
   const [isBalancing, setIsBalancing] = useState(false);
   const [message, setMessage] = useState('');
 
+  const filename = localStorage.getItem('uploadedFile');
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -41,8 +46,12 @@ function CommentPage() {
 
 
   const fetchAndUpdateGrid = async () => {
+    if (!filename) {
+        setMessage('Filename is missing!');
+        return;
+    }
+
     try {
-        const filename = 'uploaded-file.txt'; // Replace with the actual filename if needed
         const response = await fetch('/process-upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -55,81 +64,100 @@ function CommentPage() {
 
         const processedData = await response.json();
 
-        // Update the grid items based on the response
-        const updatedGrid = gridItems.map((item) => {
+        // Step 1: Create a 2D array representing the rows of the grid
+        const rows = [];
+        for (let i = 0; i < gridItems.length; i += 12) {
+            rows.push(gridItems.slice(i, i + 12));
+        }
+
+        // Step 2: Reverse the rows array
+        const reversedRows = rows.reverse();
+
+        // Step 3: Flatten the reversed rows back into a single array
+        const reversedGridItems = reversedRows.flat();
+
+        // Step 4: Update the grid items based on the processed data
+        const updatedGrid = reversedGridItems.map((item, index) => {
             const matchingData = processedData.find((data) => data.id === item.id);
             return matchingData
-                ? {
-                      ...item,
-                      name: matchingData.name,
-                      weight: matchingData.weight,
-                  }
+                ? { ...item, name: matchingData.name, weight: matchingData.weight }
                 : item;
         });
 
-        setGridItems(updatedGrid); // Update the state with the new grid
+        // Step 5: Update the state with the reversed and updated grid
+        setGridItems(updatedGrid);
         setMessage('Grid updated successfully!');
     } catch (error) {
         console.error('Error updating grid:', error);
         setMessage(`Failed to update grid: ${error.message}`);
     }
-  };
+};
 
-  const handleBalance = async () => {
-    try {
-      setIsBalancing(true);
-      
-      // Convert grid items to the format expected by the backend
-      const cellList = gridItems.map((item, index) => {
-        const row = Math.floor(index / 12) + 1;
-        const column = (index % 12) + 1;
-        return {
-          row: row,
-          column: column,
-          weight: parseInt(item.weight.replace(' Lbs: ', '')) || 0,
-          name: item.name
-        };
-      });
-  
-      console.log("Sending to backend:", cellList); // Debug log
-  
-      const response = await axios.post("http://localhost:5000/balance", {
-        ship: "SHIP1",
-        cellList: cellList,
-        bufferList: []
-      });
-  
-      if (response.status === 200) {
-        console.log("Received from backend:", response.data); // Debug log
-        
-        // Create a new array with the same length as gridItems
-        const newGridItems = Array.from({ length: gridItems.length }, (_, index) => {
-          const balancedItem = response.data.find(item => item.id === index + 1);
-          if (balancedItem) {
-            return {
-              id: index + 1,
-              name: balancedItem.name,
-              weight: balancedItem.weight
-            };
-          }
+const handleBalance = async () => {
+  try {
+    setIsBalancing(true);
+    
+    // Convert grid items to the format expected by the backend
+    const cellList = gridItems.map((item, index) => {
+      const row = Math.floor(index / 12) + 1;
+      const column = (index % 12) + 1;
+      return {
+        row: row,
+        column: column,
+        weight: parseInt(item.weight.replace(' Lbs: ', '')) || 0,
+        name: item.name
+      };
+    });
+
+    console.log("Sending to backend:", cellList); // Debug log
+
+    const response = await axios.post("http://localhost:5000/balance", {
+      ship: "SHIP1",
+      cellList: cellList,
+      bufferList: [] // Or include buffer data if required
+    });
+
+    console.log("Backend response:", response); // Debug log to ensure backend is responding
+    
+    if (response.status === 200) {
+      console.log("Received from backend:", response.data); // Debug log
+
+      const newGridItems = Array.from({ length: gridItems.length }, (_, index) => {
+        const balancedItem = response.data.find(item => item.id === index + 1);
+        if (balancedItem) {
           return {
             id: index + 1,
-            name: "UNUSED",
-            weight: "0 Lbs: "
+            name: balancedItem.name,
+            weight: balancedItem.weight
           };
-        });
-  
-        console.log("Updating grid with:", newGridItems); // Debug log
-        setGridItems(newGridItems);
-        alert("Containers balanced successfully!");
-      }
-    } catch (error) {
-      console.error("Error balancing containers:", error);
-      alert("An error occurred while balancing containers.");
-    } finally {
-      setIsBalancing(false);
+        }
+        return {
+          id: index + 1,
+          name: "UNUSED",
+          weight: "0 Lbs: "
+        };
+      });
+
+      console.log("Updating grid with:", newGridItems); // Debug log
+      setGridItems(newGridItems);
+      alert("Containers balanced successfully!");
     }
-  };
+  } catch (error) {
+    console.error("Error balancing containers:", error);
+    alert("An error occurred while balancing containers.");
+    
+    // Check specific error
+    if (error.response) {
+      console.error("Backend error response:", error.response);
+    } else if (error.request) {
+      console.error("No response received from backend:", error.request);
+    } else {
+      console.error("Error in setting up request:", error.message);
+    }
+  } finally {
+    setIsBalancing(false);
+  }
+};
 
   const handleOpenModal = (index) => {
     setCurrentIndex(index);

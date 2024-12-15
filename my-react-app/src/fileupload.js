@@ -14,12 +14,12 @@ function FileUpload() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-    
+        
         if (!file) {
             setMessage('Please select a file first');
             return;
         }
-    
+        
         setLoading(true);
         const formData = new FormData();
         formData.append('file', file);
@@ -58,9 +58,12 @@ function FileUpload() {
             setMessage('File processed successfully!');
             console.log('Processed data:', processData);
     
-            // Navigate to operations page after successful upload
+            // Store the filename in localStorage
+            localStorage.setItem('uploadedFile', filename);
+    
+            // Navigate to the CommentPage after successful upload
             setTimeout(() => {
-                navigate('/operations');
+                navigate('/comment');
             }, 1000);
     
         } catch (error) {
