@@ -13,7 +13,8 @@ Team EZCargo
 
 4) This file [EZCargo](https://drive.google.com/file/d/18nPjbnChVlkpwWbTvfgGqAVyc863hFFs/view?usp=drive_link) shows evidence of our efforts to design our software.
 
-9) We would like to point out the following limitations:
+
+ #9) We would like to point out the following limitations:
    
     •We did not implement "recovery from power outage"
     
@@ -24,5 +25,5 @@ Team EZCargo
     •We did not finish the outbound txt to properly update
 
 
-11) We would like to acknowledge the following resources that were helpful in completing this project. We watched these youtube videos: [Youtube](https://www.youtube.com/watch?v=SqcY0GlETPk&t), [Youtube](https://www.youtube.com/watch?v=QwarZBtFoFA)
+ #11) We would like to acknowledge the following resources that were helpful in completing this project. We watched these youtube videos: [Youtube](https://www.youtube.com/watch?v=SqcY0GlETPk&t), [Youtube](https://www.youtube.com/watch?v=QwarZBtFoFA)
   
